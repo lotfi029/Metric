@@ -1,9 +1,9 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { UserService } from '../../../core/services/user.service';
-import { DetailedUserResponse } from '../../../core/models/user.model';
-import { BadgeComponent } from '../../../shared/components/badge/badge.component';
+import { UserService } from '@core/services/user.service';
+import { DetailedUserResponse } from '@core/models/user.model';
+import { BadgeComponent } from '@shared/components/badge/badge.component';
 
 interface KPIData {
   attendanceRate: number;

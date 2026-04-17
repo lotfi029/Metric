@@ -1,12 +1,12 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { UserService } from '../../../core/services/user.service';
-import { RoleService } from '../../../core/services/role.service';
-import { DetailedUserResponse } from '../../../core/models/user.model';
-import { RoleResponse } from '../../../core/models/role.model';
-import { ToastService } from '../../../core/services/toast.service';
+import { UserService } from '@core/services/user.service';
+import { RoleService } from '@core/services/role.service';
+import { DetailedUserResponse } from '@core/models/user.model';
+import { RoleResponse } from '@core/models/role.model';
+import { ToastService } from '@core/services/toast.service';
 
 @Component({
   selector: 'app-user-details',
@@ -35,7 +35,9 @@ export class UserDetailsComponent implements OnInit {
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       email: [''],
-      roleId: ['']
+      roleId: [''],
+      twoFactorEnabled: [false],
+      apiAccessEnabled: [false]
     });
   }
 

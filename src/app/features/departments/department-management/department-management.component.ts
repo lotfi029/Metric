@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DepartmentService } from '@core/services/department.service';
 import { UserService } from '@core/services/user.service';
 import { DepartmentResponse } from '@core/models/department.model';
@@ -13,7 +13,7 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
 @Component({
   selector: 'app-department-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, BadgeComponent, ModalComponent, ConfirmDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, BadgeComponent, ModalComponent, ConfirmDialogComponent],
   templateUrl: './department-management.component.html',
   styleUrls: ['./department-management.component.css']
 })

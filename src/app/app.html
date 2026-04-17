@@ -3,12 +3,13 @@
 
   <!-- Toast Container -->
   <div class="fixed top-4 right-4 space-y-3 z-[9999]">
-    <div
-      *ngFor="let toast of toastService.toasts()"
-      [ngClass]="getToastClass(toast.type)"
-      class="animate-in fade-in slide-in-from-top-4 duration-300"
-    >
-      {{ toast.message }}
-    </div>
+    @for (toast of toastService.toasts(); track toast.id) {
+      <div
+        [ngClass]="getToastClass(toast.type)"
+        class="animate-in fade-in slide-in-from-top-4 duration-300"
+      >
+        {{ toast.message }}
+      </div>
+    }
   </div>
 </div>
