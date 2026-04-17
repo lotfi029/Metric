@@ -1,0 +1,162 @@
+<div class="space-y-6" *ngIf="!isLoading(); else loading">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-['Manrope'] font-black text-[#041627]">User Configuration</h1>
+      <p class="text-[#515f74]">{{ user()?.firstName }} {{ user()?.lastName }}</p>
+    </div>
+    <div class="flex gap-3">
+      <button
+        (click)="cancel()"
+        class="btn-secondary px-8 py-3"
+      >
+        Discard
+      </button>
+      <button
+        (click)="onSave()"
+        [disabled]="userForm.invalid || isSaving()"
+        class="btn-primary px-8 py-3 flex items-center justify-center gap-2"
+      >
+        <span *ngIf="!isSaving()">Save Changes</span>
+        <span *ngIf="isSaving()" class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-12 gap-8">
+    <!-- Personal Details (col-span-8) -->
+    <div class="col-span-8 bg-white rounded-xl p-8 card-base">
+      <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Personal Details</h2>
+      
+      <form [formGroup]="userForm" class="space-y-6">
+        <!-- Avatar Section -->
+        <div class="mb-8">
+          <div class="w-20 h-20 rounded-full bg-gradient-to-br from-[#041627] to-[#1a2b3c] flex items-center justify-center text-white font-['Manrope'] font-bold text-2xl">
+            {{ getInitials(user()!) }}
+          </div>
+          <button type="button" class="text-[#6cd3f7] font-medium text-sm mt-3 hover:underline">
+            Change Avatar
+          </button>
+        </div>
+
+        <!-- First Name -->
+        <div>
+          <label class="text-label text-[#8192a7] block mb-3">First Name</label>
+          <input
+            formControlName="firstName"
+            type="text"
+            class="input-base w-full text-[#041627]"
+          />
+        </div>
+
+        <!-- Last Name -->
+        <div>
+          <label class="text-label text-[#8192a7] block mb-3">Last Name</label>
+          <input
+            formControlName="lastName"
+            type="text"
+            class="input-base w-full text-[#041627]"
+          />
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label class="text-label text-[#8192a7] block mb-3">Email</label>
+          <input
+            formControlName="email"
+            type="email"
+            disabled
+            class="input-base w-full text-[#8192a7] bg-[#f2f4f6] opacity-60"
+          />
+          <p class="text-xs text-[#8192a7] mt-2">Email cannot be changed</p>
+        </div>
+
+        <!-- Username -->
+        <div>
+          <label class="text-label text-[#8192a7] block mb-3">Username</label>
+          <input
+            type="text"
+            [value]="user()?.userName"
+            disabled
+            class="input-base w-full text-[#8192a7] bg-[#f2f4f6] opacity-60"
+          />
+        </div>
+      </form>
+    </div>
+
+    <!-- Assign Role (col-span-4) -->
+    <div class="col-span-4 bg-white rounded-xl p-8 card-base">
+      <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Assign Role</h2>
+      
+      <div class="space-y-4">
+        <select
+          formControlName="roleId"
+          class="input-base w-full text-[#041627] border-0 border-b-2"
+        >
+          <option value="">Select a role</option>
+          <option *ngFor="let role of roles()" [value]="role.id">{{ role.roleName }}</option>
+        </select>
+        
+        <p class="text-xs text-[#8192a7] p-3 bg-[#f2f4f6] rounded">
+          Role assignment controls the user's permissions in the system.
+        </p>
+      </div>
+    </div>
+
+    <!-- Account Settings (col-span-12) -->
+    <div class="col-span-12 bg-white rounded-xl p-8 card-base">
+      <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Account Settings</h2>
+      
+      <div class="grid grid-cols-2 gap-8">
+        <!-- Left Side -->
+        <div class="space-y-6">
+          <div class="flex items-center justify-between pb-4 border-b border-[#eceef0]">
+            <div>
+              <p class="font-medium text-[#041627]">Two-Factor Authentication</p>
+              <p class="text-sm text-[#515f74]">Enable for additional security</p>
+            </div>
+            <input type="checkbox" formControlName="twoFactorEnabled" class="w-5 h-5" />
+          </div>
+
+          <div class="flex items-center justify-between pb-4 border-b border-[#eceef0]">
+            <div>
+              <p class="font-medium text-[#041627]">API Access</p>
+              <p class="text-sm text-[#515f74]">Allow API token generation</p>
+            </div>
+            <input type="checkbox" formControlName="apiAccessEnabled" class="w-5 h-5" />
+          </div>
+        </div>
+
+        <!-- Right Side -->
+        <div class="space-y-6">
+          <div>
+            <label class="text-label text-[#8192a7] block mb-3">Language Preference</label>
+            <select class="input-base w-full text-[#041627] border-0 border-b-2">
+              <option>English</option>
+              <option>Spanish</option>
+              <option>French</option>
+            </select>
+          </div>
+
+          <!-- Danger Zone -->
+          <div class="p-4 bg-[#ffdad6] rounded-lg border border-[#ba1a1a]/30">
+            <p class="font-medium text-[#93000a] mb-3">Danger Zone</p>
+            <button
+              (click)="toggleActive()"
+              class="w-full bg-[#ba1a1a] text-white px-4 py-2 rounded hover:bg-[#9a1515] transition-colors"
+            >
+              {{ user()?.isActive ? 'Deactivate Account' : 'Activate Account' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="space-y-4">
+    <div class="h-10 bg-[#e0e3e5] rounded animate-pulse"></div>
+    <div class="h-96 bg-[#e0e3e5] rounded animate-pulse"></div>
+  </div>
+</ng-template>

@@ -1,0 +1,74 @@
+<div class="flex h-screen bg-white">
+  <!-- Left Half - Brand -->
+  <div class="hidden lg:flex w-1/2 bg-[#041627] flex-col items-center justify-center p-12 text-white">
+    <div class="text-center max-w-md">
+      <h1 class="text-5xl font-['Manrope'] font-black mb-4">Metric</h1>
+      <p class="text-xl text-[#8192a7] mb-12 font-['Manrope']">Interior Design ERP</p>
+      
+      <div class="bg-[#1a2b3c] rounded-xl p-8 border border-[#269dbe]/30">
+        <p class="text-[#8192a7] italic mb-4">"Metric transformed how we manage projects and people. Our on-time delivery improved by 40%."</p>
+        <p class="text-[#6cd3f7] font-medium">Sarah Chen</p>
+        <p class="text-[#8192a7] text-sm">Design Director, Studio Chen</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Half - Login Form -->
+  <div class="w-full lg:w-1/2 flex items-center justify-center p-8">
+    <div class="w-full max-w-md">
+      <!-- Card -->
+      <div class="bg-white rounded-xl p-10 card-base">
+        <h2 class="text-2xl font-['Manrope'] font-bold text-[#041627] mb-2">Welcome back</h2>
+        <p class="text-[#515f74] mb-8 text-sm">Sign in to your account to continue</p>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          
+          <!-- Error Message -->
+          <div *ngIf="errorMessage()" class="bg-[#ffdad6] border border-[#ba1a1a] rounded-lg p-4 text-[#93000a] text-sm">
+            {{ errorMessage() }}
+          </div>
+
+          <!-- Username -->
+          <div>
+            <label class="text-label text-[#8192a7] block mb-3">Username</label>
+            <input
+              formControlName="userName"
+              type="text"
+              placeholder="Enter your username"
+              class="input-base w-full text-[#041627] placeholder-[#8192a7]"
+            />
+            <div *ngIf="userName?.invalid && userName?.touched" class="text-[#ba1a1a] text-xs mt-1">
+              Username is required
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label class="text-label text-[#8192a7] block mb-3">Password</label>
+            <input
+              formControlName="password"
+              type="password"
+              placeholder="Enter your password"
+              class="input-base w-full text-[#041627] placeholder-[#8192a7]"
+            />
+            <div *ngIf="password?.invalid && password?.touched" class="text-[#ba1a1a] text-xs mt-1">
+              <span *ngIf="password?.hasError('required')">Password is required</span>
+              <span *ngIf="password?.hasError('minlength')">Password must be at least 6 characters</span>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            [disabled]="loginForm.invalid || isLoading()"
+            class="btn-primary w-full flex items-center justify-center gap-2 py-3"
+          >
+            <span *ngIf="!isLoading()">Sign In</span>
+            <span *ngIf="isLoading()" class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+          </button>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

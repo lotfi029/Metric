@@ -1,0 +1,31 @@
+<header class="fixed top-0 right-0 h-16 w-[calc(100%-16rem)] bg-[#f2f4f6] border-b border-[#eceef0] flex items-center justify-between px-8 z-40">
+  <!-- Left Section -->
+  <div class="flex items-center gap-6 flex-1">
+    <h1 class="text-xl font-['Manrope'] font-bold text-[#041627]">{{ pageTitle() }}</h1>
+    <input
+      type="text"
+      placeholder="Search..."
+      class="w-64 px-4 py-2 rounded-lg bg-white border border-[#eceef0] focus:outline-none focus:border-[#6cd3f7]"
+    />
+  </div>
+
+  <!-- Right Section -->
+  <div class="flex items-center gap-6">
+    <!-- Notifications -->
+    <button class="relative p-2 hover:bg-[#eceef0] rounded-lg transition-colors">
+      <span class="material-symbols-outlined text-[#041627]">notifications</span>
+      <span class="absolute top-1 right-1 w-2 h-2 bg-[#ba1a1a] rounded-full"></span>
+    </button>
+
+    <!-- User Avatar -->
+    <div *ngIf="currentUser" class="flex items-center gap-3 pl-6 border-l border-[#eceef0]">
+      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#041627] to-[#1a2b3c] flex items-center justify-center text-white font-bold text-sm font-['Manrope']">
+        {{ getInitials(currentUser) }}
+      </div>
+      <div class="text-sm">
+        <div class="font-medium text-[#041627]">{{ currentUser.firstName }} {{ currentUser.lastName }}</div>
+        <div class="text-[#515f74] text-xs">{{ currentUser.userName }}</div>
+      </div>
+    </div>
+  </div>
+</header>

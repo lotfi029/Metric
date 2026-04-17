@@ -1,0 +1,84 @@
+<div class="space-y-6" *ngIf="!isLoading(); else loading">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-['Manrope'] font-black text-[#041627]">My Profile</h1>
+    <p class="text-[#515f74]" *ngIf="user()">{{ user()?.firstName }} {{ user()?.lastName }}</p>
+  </div>
+
+  <div class="grid grid-cols-12 gap-8">
+    <!-- Profile Info (col-span-8) -->
+    <div class="col-span-8 bg-white rounded-xl p-8 card-base">
+      <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Account Information</h2>
+      
+      <div class="space-y-6">
+        <!-- Avatar -->
+        <div class="mb-8">
+          <div *ngIf="user()" class="w-20 h-20 rounded-full bg-gradient-to-br from-[#041627] to-[#1a2b3c] flex items-center justify-center text-white font-['Manrope'] font-bold text-2xl">
+            {{ getInitials(user()!) }}
+          </div>
+        </div>
+
+        <!-- User Info Grid -->
+        <div class="grid grid-cols-2 gap-6">
+          <div>
+            <p class="text-label text-[#8192a7] mb-2">First Name</p>
+            <p class="text-lg font-medium text-[#041627]">{{ user()?.firstName }}</p>
+          </div>
+          <div>
+            <p class="text-label text-[#8192a7] mb-2">Last Name</p>
+            <p class="text-lg font-medium text-[#041627]">{{ user()?.lastName }}</p>
+          </div>
+          <div>
+            <p class="text-label text-[#8192a7] mb-2">Username</p>
+            <p class="text-lg font-medium text-[#041627]">{{ user()?.userName }}</p>
+          </div>
+          <div>
+            <p class="text-label text-[#8192a7] mb-2">Email</p>
+            <p class="text-lg font-medium text-[#041627]">{{ user()?.email }}</p>
+          </div>
+          <div>
+            <p class="text-label text-[#8192a7] mb-2">Status</p>
+            <app-badge
+              [label]="user()?.isActive ? 'Active' : 'Inactive'"
+              [variant]="user()?.isActive ? 'active' : 'inactive'"
+            ></app-badge>
+          </div>
+          <div>
+            <p class="text-label text-[#8192a7] mb-2">Member Since</p>
+            <p class="text-lg font-medium text-[#041627]">{{ user()?.createdAt | date: 'short' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Permissions (col-span-4) -->
+    <div class="col-span-4 bg-white rounded-xl p-8 card-base">
+      <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Your Permissions</h2>
+      
+      <div class="space-y-4" *ngIf="permissionsByGroup() | keyvalue as groups; else noPerms">
+        <div *ngFor="let group of groups" class="border-l-4 border-[#6cd3f7] pl-4">
+          <h3 class="font-['Manrope'] font-bold text-[#041627] text-sm mb-2">{{ group.key }}</h3>
+          <div class="flex flex-wrap gap-2">
+            <span
+              *ngFor="let perm of group.value"
+              class="inline-flex items-center px-3 py-1 rounded-full text-xs bg-[#e0e3e5] text-[#044627]"
+            >
+              {{ perm.displayName }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noPerms>
+        <p class="text-[#515f74] text-sm">No permissions assigned yet</p>
+      </ng-template>
+    </div>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="space-y-4">
+    <div class="h-10 bg-[#e0e3e5] rounded animate-pulse"></div>
+    <div class="h-96 bg-[#e0e3e5] rounded animate-pulse"></div>
+  </div>
+</ng-template>

@@ -1,0 +1,128 @@
+<div class="space-y-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-['Manrope'] font-black text-[#041627] mb-2">Welcome back!</h1>
+    <p class="text-[#515f74]">{{ currentDate }}</p>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="grid grid-cols-12 gap-6">
+    <!-- Total Users -->
+    <div class="col-span-3 bg-white rounded-xl p-8 card-base">
+      <p class="text-[#515f74] text-sm font-medium mb-2">Total Users</p>
+      <p class="text-4xl font-['Manrope'] font-black text-[#041627] mb-4">{{ users().length }}</p>
+      <div class="flex items-center gap-2 text-[#6cd3f7]">
+        <span class="material-symbols-outlined text-sm">trending_up</span>
+        <span class="text-xs">+12% this month</span>
+      </div>
+    </div>
+
+    <!-- Active Users -->
+    <div class="col-span-3 bg-white rounded-xl p-8 card-base">
+      <p class="text-[#515f74] text-sm font-medium mb-2">Active Users</p>
+      <p class="text-4xl font-['Manrope'] font-black text-[#041627] mb-4">{{ (users() | slice:0:4).length }}</p>
+      <div class="w-full bg-[#e0e3e5] rounded-full h-2">
+        <div class="bg-[#6cd3f7] h-2 rounded-full" style="width: 80%"></div>
+      </div>
+    </div>
+
+    <!-- Departments -->
+    <div class="col-span-3 bg-white rounded-xl p-8 card-base">
+      <p class="text-[#515f74] text-sm font-medium mb-2">Departments</p>
+      <p class="text-4xl font-['Manrope'] font-black text-[#041627] mb-4">5</p>
+      <p class="text-xs text-[#8192a7]">Fully staffed departments</p>
+    </div>
+
+    <!-- Roles -->
+    <div class="col-span-3 bg-white rounded-xl p-8 card-base">
+      <p class="text-[#515f74] text-sm font-medium mb-2">Roles</p>
+      <p class="text-4xl font-['Manrope'] font-black text-[#041627] mb-4">8</p>
+      <p class="text-xs text-[#8192a7]">Active role configurations</p>
+    </div>
+  </div>
+
+  <!-- Recent Users Table -->
+  <div class="col-span-8 bg-white rounded-xl overflow-hidden card-base">
+    <div class="px-8 py-6 border-b border-[#eceef0]">
+      <h2 class="text-lg font-['Manrope'] font-bold text-[#041627]">Recent Users</h2>
+      <p class="text-sm text-[#515f74]">Latest 5 users in the system</p>
+    </div>
+
+    <div *ngIf="isLoading()" class="p-8 space-y-4">
+      <div *ngFor="let i of [1, 2, 3, 4, 5]" class="h-16 bg-[#e0e3e5] rounded animate-pulse"></div>
+    </div>
+
+    <table *ngIf="!isLoading()" class="w-full">
+      <thead class="bg-[#e0e3e5] text-[10px] uppercase tracking-widest font-bold text-[#44474c]">
+        <tr>
+          <th class="px-8 py-4 text-left">Name</th>
+          <th class="px-8 py-4 text-left">Email</th>
+          <th class="px-8 py-4 text-left">Status</th>
+          <th class="px-8 py-4 text-left">Join Date</th>
+          <th class="px-8 py-4 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users()" class="border-b border-[#eceef0] hover:bg-[#e6e8ea] transition-colors">
+          <td class="px-8 py-4">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#041627] to-[#1a2b3c] flex items-center justify-center text-white text-xs font-bold font-['Manrope']">
+                {{ user.firstName[0] }}{{ user.lastName[0] }}
+              </div>
+              <span class="text-sm font-medium text-[#041627]">{{ user.firstName }} {{ user.lastName }}</span>
+            </div>
+          </td>
+          <td class="px-8 py-4 text-sm text-[#515f74]">{{ user.email }}</td>
+          <td class="px-8 py-4">
+            <app-badge
+              [label]="user.isActive ? 'Active' : 'Inactive'"
+              [variant]="getStatusVariant(user.isActive)"
+            ></app-badge>
+          </td>
+          <td class="px-8 py-4 text-sm text-[#515f74]">{{ user.createdAt | date: 'short' }}</td>
+          <td class="px-8 py-4 text-center">
+            <button
+              [routerLink]="['/users', user.id]"
+              class="text-[#6cd3f7] hover:text-[#041627] font-medium text-sm"
+            >
+              View
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="col-span-4 space-y-4">
+    <div class="bg-white rounded-xl p-8 card-base border border-[#eceef0] hover:border-[#6cd3f7] transition-colors cursor-pointer">
+      <div class="flex items-start gap-4">
+        <span class="material-symbols-outlined text-[#6cd3f7] text-2xl">person_add</span>
+        <div>
+          <h3 class="font-['Manrope'] font-bold text-[#041627] mb-1">Add User</h3>
+          <p class="text-sm text-[#515f74]">Create a new user account</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-8 card-base border border-[#eceef0] hover:border-[#6cd3f7] transition-colors cursor-pointer">
+      <div class="flex items-start gap-4">
+        <span class="material-symbols-outlined text-[#6cd3f7] text-2xl">apartment</span>
+        <div>
+          <h3 class="font-['Manrope'] font-bold text-[#041627] mb-1">Add Department</h3>
+          <p class="text-sm text-[#515f74]">Create a new department</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-8 card-base border border-[#eceef0] hover:border-[#6cd3f7] transition-colors cursor-pointer">
+      <div class="flex items-start gap-4">
+        <span class="material-symbols-outlined text-[#6cd3f7] text-2xl">shield_admin</span>
+        <div>
+          <h3 class="font-['Manrope'] font-bold text-[#041627] mb-1">Add Role</h3>
+          <p class="text-sm text-[#515f74]">Define a new role</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,229 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-['Manrope'] font-black text-[#041627]">Department Registry</h1>
+      <p class="text-[#515f74]">Manage organizational departments</p>
+    </div>
+    <button
+      (click)="showCreateModal.set(true); deptForm.reset()"
+      class="btn-primary px-8 py-3"
+    >
+      Create Department
+    </button>
+  </div>
+
+  <div class="grid grid-cols-12 gap-8">
+    <!-- Left Panel - Department Cards -->
+    <div class="col-span-4 max-h-[600px] overflow-y-auto">
+      <div class="space-y-3">
+        <div
+          *ngFor="let dept of departments()"
+          (click)="selectDept(dept)"
+          [class.border-l-4]="selectedDept()?.id === dept.id"
+          [class.border-[#6cd3f7]]="selectedDept()?.id === dept.id"
+          [class.bg-[#041627]]="selectedDept()?.id === dept.id"
+          [class.text-white]="selectedDept()?.id === dept.id"
+          [class.bg-white]="selectedDept()?.id !== dept.id"
+          [class.opacity-50]="!dept.isActive"
+          class="p-6 rounded-xl cursor-pointer transition-all hover:shadow-md"
+        >
+          <div class="flex items-start justify-between mb-2">
+            <h3 class="font-['Manrope'] font-bold">{{ dept.name }}</h3>
+            <app-badge
+              [label]="dept.isActive ? 'Active' : 'Inactive'"
+              [variant]="dept.isActive ? 'active' : 'inactive'"
+            ></app-badge>
+          </div>
+          <p [class.text-[#8192a7]]="selectedDept()?.id !== dept.id" class="text-sm mb-3 line-clamp-2">
+            {{ dept.description }}
+          </p>
+          <p class="text-xs" [class.text-[#6cd3f7]]="selectedDept()?.id === dept.id">
+            Members: X
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Department Details -->
+    <div class="col-span-8 space-y-6" *ngIf="selectedDept(); else noSelection">
+      <!-- Department Info -->
+      <div class="bg-white rounded-xl p-8 card-base">
+        <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Department Information</h2>
+        
+        <form [formGroup]="deptForm" class="space-y-4">
+          <div>
+            <label class="text-label text-[#8192a7] block mb-3">Department Name</label>
+            <input
+              formControlName="name"
+              type="text"
+              class="input-base w-full text-[#041627]"
+            />
+          </div>
+
+          <div>
+            <label class="text-label text-[#8192a7] block mb-3">Description</label>
+            <textarea
+              formControlName="description"
+              class="input-base w-full text-[#041627] min-h-[100px]"
+            ></textarea>
+          </div>
+
+          <div class="flex items-center justify-between pt-4 border-t border-[#eceef0]">
+            <label class="font-medium text-[#041627]">Active</label>
+            <input type="checkbox" formControlName="isActive" class="w-5 h-5" />
+          </div>
+
+          <div class="flex gap-3 pt-4">
+            <button
+              type="button"
+              (click)="showDeleteConfirm.set(true)"
+              class="btn-secondary px-6 py-2 text-[#ba1a1a]"
+            >
+              Delete
+            </button>
+            <button
+              type="button"
+              (click)="saveDeptChanges()"
+              class="btn-primary px-6 py-2 flex-1"
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Members Section -->
+      <div class="bg-white rounded-xl p-8 card-base">
+        <h3 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Department Members</h3>
+
+        <!-- Add User -->
+        <div class="mb-6 space-y-3">
+          <div class="flex gap-2">
+            <input
+              [(ngModel)]="newUserInput"
+              type="text"
+              placeholder="Enter user ID..."
+              class="input-base flex-1 text-[#041627]"
+            />
+            <button
+              (click)="addUserToDept()"
+              class="btn-primary px-6 py-3"
+            >
+              Add User
+            </button>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full" *ngIf="deptUsers().length > 0; else noMembers">
+            <thead class="bg-[#e0e3e5] text-[10px] uppercase tracking-widest font-bold text-[#44474c]">
+              <tr>
+                <th class="px-6 py-4 text-left">Name</th>
+                <th class="px-6 py-4 text-left">Email</th>
+                <th class="px-6 py-4 text-left">Status</th>
+                <th class="px-6 py-4 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of deptUsers()" class="border-b border-[#eceef0] hover:bg-[#e6e8ea]">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#041627] to-[#1a2b3c] flex items-center justify-center text-white text-xs font-bold font-['Manrope']">
+                      {{ user.firstName[0] }}{{ user.lastName[0] }}
+                    </div>
+                    <span class="text-sm font-medium text-[#041627]">{{ user.firstName }} {{ user.lastName }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm text-[#515f74]">{{ user.email }}</td>
+                <td class="px-6 py-4">
+                  <app-badge
+                    [label]="user.isActive ? 'Active' : 'Inactive'"
+                    [variant]="user.isActive ? 'active' : 'inactive'"
+                  ></app-badge>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <button
+                    (click)="removeUserFromDept(user.id)"
+                    class="text-[#ba1a1a] hover:bg-[#ffdad6] px-2 py-1 rounded transition-colors"
+                  >
+                    <span class="material-symbols-outlined text-sm">close</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <ng-template #noMembers>
+            <div class="text-center py-8 text-[#515f74]">
+              <p>No members in this department</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noSelection>
+      <div class="col-span-8 bg-[#f2f4f6] rounded-xl p-12 flex items-center justify-center text-center">
+        <div>
+          <span class="material-symbols-outlined text-5xl text-[#8192a7] block mb-4">info</span>
+          <p class="text-[#515f74]">Select a department to manage</p>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Create Department Modal -->
+  <app-modal
+    title="Create New Department"
+    [isOpen]="showCreateModal()"
+    (closed)="showCreateModal.set(false)"
+  >
+    <form [formGroup]="deptForm" (ngSubmit)="createDept()" class="space-y-4">
+      <div>
+        <label class="text-label text-[#8192a7] block mb-2">Department Name</label>
+        <input
+          formControlName="name"
+          type="text"
+          placeholder="e.g., Design, Project Management"
+          class="input-base w-full text-[#041627]"
+        />
+      </div>
+      <div>
+        <label class="text-label text-[#8192a7] block mb-2">Description</label>
+        <textarea
+          formControlName="description"
+          placeholder="Describe the department's purpose..."
+          class="input-base w-full text-[#041627] min-h-[80px]"
+        ></textarea>
+      </div>
+      <div class="flex gap-3 justify-end pt-4">
+        <button
+          type="button"
+          (click)="showCreateModal.set(false)"
+          class="btn-secondary px-6 py-2"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          [disabled]="deptForm.invalid"
+          class="btn-primary px-6 py-2"
+        >
+          Create Department
+        </button>
+      </div>
+    </form>
+  </app-modal>
+
+  <!-- Delete Confirmation Dialog -->
+  <app-confirm-dialog
+    [isOpen]="showDeleteConfirm()"
+    title="Delete Department"
+    message="Are you sure you want to delete this department? This action cannot be undone."
+    confirmLabel="Delete"
+    (confirmed)="deleteDept()"
+    (cancelled)="showDeleteConfirm.set(false)"
+  ></app-confirm-dialog>
+</div>

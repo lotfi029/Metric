@@ -1,0 +1,139 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-['Manrope'] font-black text-[#041627] mb-2">Organizational Registry</h1>
+    <p class="text-[#515f74]">{{ totalCount }} users in the system</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl p-6 card-base">
+      <p class="text-[#515f74] text-sm font-medium mb-2">Total Users</p>
+      <p class="text-3xl font-['Manrope'] font-black text-[#041627]">{{ totalCount }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-6 card-base">
+      <p class="text-[#515f74] text-sm font-medium mb-2">Active Users</p>
+      <p class="text-3xl font-['Manrope'] font-black text-[#6cd3f7]">{{ activeCount }}</p>
+      <div class="w-full bg-[#e0e3e5] rounded-full h-2 mt-3">
+        <div class="bg-[#6cd3f7] h-2 rounded-full" [style.width.%]="(activeCount / totalCount) * 100"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-xl p-6 card-base space-y-4">
+    <h3 class="font-['Manrope'] font-bold text-[#041627]">Filters</h3>
+    <form [formGroup]="filterForm" class="grid grid-cols-4 gap-4">
+      <div>
+        <label class="text-label text-[#8192a7] block mb-2">Role</label>
+        <select
+          formControlName="roleId"
+          class="input-base w-full text-[#041627] border-0 border-b-2"
+        >
+          <option value="">All Roles</option>
+          <option *ngFor="let role of roles()" [value]="role.id">{{ role.roleName }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-label text-[#8192a7] block mb-2">Status</label>
+        <select
+          formControlName="status"
+          class="input-base w-full text-[#041627] border-0 border-b-2"
+        >
+          <option value="">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div class="col-span-2">
+        <label class="text-label text-[#8192a7] block mb-2">Search</label>
+        <input
+          formControlName="search"
+          type="text"
+          placeholder="Search by name or email..."
+          class="input-base w-full text-[#041627] placeholder-[#8192a7]"
+        />
+      </div>
+    </form>
+  </div>
+
+  <!-- Users Table -->
+  <div class="bg-white rounded-xl overflow-hidden card-base">
+    <div *ngIf="isLoading()" class="p-8 space-y-4">
+      <div *ngFor="let i of [1, 2, 3, 4, 5]" class="h-16 bg-[#e0e3e5] rounded animate-pulse"></div>
+    </div>
+
+    <table *ngIf="!isLoading()" class="w-full">
+      <thead class="bg-[#e0e3e5] text-[10px] uppercase tracking-widest font-bold text-[#44474c]">
+        <tr>
+          <th class="px-8 py-4 text-left">Name</th>
+          <th class="px-8 py-4 text-left">Email</th>
+          <th class="px-8 py-4 text-left">Status</th>
+          <th class="px-8 py-4 text-left">Join Date</th>
+          <th class="px-8 py-4 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of filteredUsers()" class="border-b border-[#eceef0] hover:bg-[#e6e8ea] transition-colors">
+          <td class="px-8 py-4">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#041627] to-[#1a2b3c] flex items-center justify-center text-white text-xs font-bold font-['Manrope']">
+                {{ user.firstName[0] }}{{ user.lastName[0] }}
+              </div>
+              <div>
+                <p class="text-sm font-medium text-[#041627]">{{ user.firstName }} {{ user.lastName }}</p>
+                <p class="text-xs text-[#8192a7]">ID: {{ user.id.substring(0, 8) }}</p>
+              </div>
+            </div>
+          </td>
+          <td class="px-8 py-4 text-sm text-[#515f74]">{{ user.email }}</td>
+          <td class="px-8 py-4">
+            <app-badge
+              [label]="user.isActive ? 'Active' : 'Inactive'"
+              [variant]="getStatusVariant(user.isActive)"
+            ></app-badge>
+          </td>
+          <td class="px-8 py-4 text-sm text-[#515f74]">{{ user.createdAt | date: 'short' }}</td>
+          <td class="px-8 py-4">
+            <div class="flex justify-center gap-3">
+              <a
+                [routerLink]="['/users', user.id]"
+                class="text-[#6cd3f7] hover:text-[#041627] hover:bg-[#e0e3e5] px-2 py-1 rounded transition-colors"
+              >
+                <span class="material-symbols-outlined text-sm">edit</span>
+              </a>
+              <button
+                (click)="toggleActive(user)"
+                class="text-[#6cd3f7] hover:text-[#041627] hover:bg-[#e0e3e5] px-2 py-1 rounded transition-colors"
+              >
+                <span class="material-symbols-outlined text-sm">
+                  {{ user.isActive ? 'block' : 'check_circle' }}
+                </span>
+              </button>
+              <button
+                (click)="onDeleteClick(user)"
+                class="text-[#ba1a1a] hover:text-white hover:bg-[#ba1a1a] px-2 py-1 rounded transition-colors"
+              >
+                <span class="material-symbols-outlined text-sm">delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!isLoading() && filteredUsers().length === 0" class="p-8 text-center text-[#515f74]">
+      No users found matching your filters
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Dialog -->
+  <app-confirm-dialog
+    [isOpen]="showDeleteConfirm()"
+    title="Delete User"
+    [message]="'Are you sure you want to delete ' + (userToDelete?.firstName || '') + ' ' + (userToDelete?.lastName || '') + '? This action cannot be undone.'"
+    confirmLabel="Delete"
+    (confirmed)="confirmDelete()"
+    (cancelled)="showDeleteConfirm.set(false)"
+  ></app-confirm-dialog>
+</div>

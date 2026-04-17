@@ -1,0 +1,204 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-['Manrope'] font-black text-[#041627] mb-2">Create New User</h1>
+    <p class="text-[#515f74]">Add a new user account to the system</p>
+  </div>
+
+  <div class="grid grid-cols-12 gap-8">
+    <!-- Main Form (col-span-8) -->
+    <div class="col-span-8 space-y-6">
+      <!-- Identity Details Card -->
+      <div class="bg-white rounded-xl p-8 card-base">
+        <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Identity Details</h2>
+        
+        <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <div class="grid grid-cols-2 gap-4">
+            <!-- First Name -->
+            <div>
+              <label class="text-label text-[#8192a7] block mb-3">First Name</label>
+              <input
+                formControlName="firstName"
+                type="text"
+                placeholder="John"
+                class="input-base w-full text-[#041627] placeholder-[#8192a7]"
+              />
+              <div *ngIf="userForm.get('firstName')?.invalid && userForm.get('firstName')?.touched" class="text-[#ba1a1a] text-xs mt-1">
+                First name is required
+              </div>
+            </div>
+
+            <!-- Last Name -->
+            <div>
+              <label class="text-label text-[#8192a7] block mb-3">Last Name</label>
+              <input
+                formControlName="lastName"
+                type="text"
+                placeholder="Doe"
+                class="input-base w-full text-[#041627] placeholder-[#8192a7]"
+              />
+              <div *ngIf="userForm.get('lastName')?.invalid && userForm.get('lastName')?.touched" class="text-[#ba1a1a] text-xs mt-1">
+                Last name is required
+              </div>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="text-label text-[#8192a7] block mb-3">Email</label>
+            <input
+              formControlName="email"
+              type="email"
+              placeholder="john@example.com"
+              class="input-base w-full text-[#041627] placeholder-[#8192a7]"
+            />
+            <div *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched" class="text-[#ba1a1a] text-xs mt-1">
+              <span *ngIf="userForm.get('email')?.hasError('required')">Email is required</span>
+              <span *ngIf="userForm.get('email')?.hasError('email')">Please enter a valid email</span>
+            </div>
+          </div>
+
+          <!-- Username -->
+          <div>
+            <label class="text-label text-[#8192a7] block mb-3">Username</label>
+            <input
+              formControlName="userName"
+              type="text"
+              placeholder="johndoe"
+              class="input-base w-full text-[#041627] placeholder-[#8192a7]"
+            />
+            <div *ngIf="userForm.get('userName')?.invalid && userForm.get('userName')?.touched" class="text-[#ba1a1a] text-xs mt-1">
+              Username is required
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label class="text-label text-[#8192a7] block mb-3">Password</label>
+            <input
+              formControlName="password"
+              type="password"
+              placeholder="••••••••"
+              class="input-base w-full text-[#041627] placeholder-[#8192a7]"
+            />
+            <div *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched" class="text-[#ba1a1a] text-xs mt-1">
+              <span *ngIf="userForm.get('password')?.hasError('required')">Password is required</span>
+              <span *ngIf="userForm.get('password')?.hasError('minlength')">Password must be at least 8 characters</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Role -->
+            <div>
+              <label class="text-label text-[#8192a7] block mb-3">Role</label>
+              <select
+                formControlName="roleId"
+                class="input-base w-full text-[#041627] border-0 border-b-2"
+              >
+                <option value="null">Select a role</option>
+                <option *ngFor="let role of roles()" [value]="role.id">{{ role.roleName }}</option>
+              </select>
+            </div>
+
+            <!-- Department -->
+            <div>
+              <label class="text-label text-[#8192a7] block mb-3">Department</label>
+              <select
+                formControlName="departmentId"
+                class="input-base w-full text-[#041627] border-0 border-b-2"
+              >
+                <option value="null">Select a department</option>
+                <option *ngFor="let dept of departments()" [value]="dept.id">{{ dept.name }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex gap-4 pt-4">
+            <button
+              type="button"
+              (click)="cancel()"
+              class="btn-secondary px-8 py-3"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              [disabled]="userForm.invalid || isSaving()"
+              class="btn-primary px-8 py-3 flex items-center justify-center gap-2 flex-1"
+            >
+              <span *ngIf="!isSaving()">Create User</span>
+              <span *ngIf="isSaving()" class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Initial Permissions Card -->
+      <div *ngIf="!isLoading()" class="bg-white rounded-xl p-8 card-base">
+        <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Initial Permissions</h2>
+        
+        <div class="space-y-6">
+          <div *ngFor="let group of permissionsByGroup() | keyvalue" class="border-l-4 border-[#6cd3f7] pl-6">
+            <h3 class="font-['Manrope'] font-bold text-[#041627] mb-4">{{ group.key }}</h3>
+            <div class="space-y-3">
+              <div *ngFor="let perm of group.value" class="flex items-center gap-3">
+                <app-toggle
+                  [checked]="isPermissionSelected(perm.name)"
+                  (changed)="togglePermission(perm.name)"
+                ></app-toggle>
+                <div>
+                  <p class="text-sm font-medium text-[#041627]">{{ perm.displayName }}</p>
+                  <p *ngIf="perm.description" class="text-xs text-[#8192a7]">{{ perm.description }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar (col-span-4) -->
+    <div class="col-span-4 space-y-6">
+      <!-- Preview Card -->
+      <div class="bg-[#041627] rounded-xl p-8 card-base text-white">
+        <h3 class="text-lg font-['Manrope'] font-bold mb-6">Preview</h3>
+        
+        <div class="space-y-6">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-[#1a2b3c] flex items-center justify-center font-['Manrope'] font-bold text-lg">
+              {{ userForm.get('firstName')?.value?.[0] || 'J' }}{{ userForm.get('lastName')?.value?.[0] || 'D' }}
+            </div>
+            <div>
+              <p class="font-bold">{{ userForm.get('firstName')?.value || 'First' }} {{ userForm.get('lastName')?.value || 'Last' }}</p>
+              <p class="text-[#8192a7] text-sm">@{{ userForm.get('userName')?.value || 'username' }}</p>
+            </div>
+          </div>
+
+          <div class="border-t border-[#1a2b3c] pt-4">
+            <p class="text-[#8192a7] text-xs uppercase tracking-widest mb-2">Role</p>
+            <p class="font-medium">{{ roles().find(r => r.id === userForm.get('roleId')?.value)?.roleName || 'Not Selected' }}</p>
+          </div>
+
+          <div class="border-t border-[#1a2b3c] pt-4">
+            <p class="text-[#8192a7] text-xs uppercase tracking-widest mb-2">Department</p>
+            <p class="font-medium">{{ departments().find(d => d.id === userForm.get('departmentId')?.value)?.name || 'Not Selected' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Tip Card -->
+      <div class="border-l-4 border-[#6cd3f7] bg-[#f2f4f6] rounded-xl p-6">
+        <div class="flex gap-4">
+          <span class="material-symbols-outlined text-[#6cd3f7] flex-shrink-0">shield</span>
+          <div>
+            <h4 class="font-['Manrope'] font-bold text-[#041627] mb-2">Security Tip</h4>
+            <p class="text-sm text-[#515f74]">
+              Generate a strong password with at least 8 characters including uppercase, lowercase, numbers, and symbols.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

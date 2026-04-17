@@ -1,0 +1,136 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-['Manrope'] font-black text-[#041627]">Role Architecture</h1>
+      <p class="text-[#515f74]">Manage roles and permissions</p>
+    </div>
+    <button
+      (click)="openCreateModal()"
+      class="btn-primary px-8 py-3"
+    >
+      Add New Role
+    </button>
+  </div>
+
+  <div class="grid grid-cols-12 gap-8">
+    <!-- Left Panel - Role Cards -->
+    <div class="col-span-4 max-h-[600px] overflow-y-auto">
+      <div class="space-y-3">
+        <div
+          *ngFor="let role of roles()"
+          (click)="selectRole(role)"
+          [class.ring-2]="selectedRole()?.id === role.id"
+          [class.ring-[#041627]]="selectedRole()?.id === role.id"
+          [class.bg-[#1a2b3c]]="selectedRole()?.id === role.id"
+          [class.text-white]="selectedRole()?.id === role.id"
+          [class.bg-white]="selectedRole()?.id !== role.id"
+          [class.text-[#041627]]="selectedRole()?.id !== role.id"
+          class="p-6 rounded-xl cursor-pointer transition-all hover:shadow-md"
+        >
+          <h3 class="font-['Manrope'] font-bold mb-2">{{ role.roleName }}</h3>
+          <p [class.text-[#8192a7]]="selectedRole()?.id !== role.id" class="text-sm mb-4">
+            Role ID: {{ role.id.substring(0, 8) }}
+          </p>
+          <div *ngIf="selectedRole()?.id === role.id" class="flex gap-2">
+            <button
+              (click)="openEditModal()"
+              class="flex-1 text-center text-[#6cd3f7] text-sm font-medium hover:bg-white/10 px-3 py-2 rounded transition-colors"
+            >
+              <span class="material-symbols-outlined text-sm">edit</span>
+            </button>
+            <button
+              (click)="openDeleteConfirm()"
+              class="flex-1 text-center text-[#ba1a1a] text-sm font-medium hover:bg-white/10 px-3 py-2 rounded transition-colors"
+            >
+              <span class="material-symbols-outlined text-sm">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Permission Matrix -->
+    <div class="col-span-8 bg-white rounded-xl p-8 card-base" *ngIf="selectedRole(); else noSelection">
+      <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">
+        Assign Permissions: <span class="text-[#6cd3f7]">{{ selectedRole()?.roleName }}</span>
+      </h2>
+
+      <div class="space-y-6">
+        <div *ngFor="let group of permissionsByGroup() | keyvalue" class="border-l-4 border-[#6cd3f7] pl-6">
+          <h3 class="font-['Manrope'] font-bold text-[#041627] mb-4">{{ group.key }}</h3>
+          <div class="space-y-3">
+            <div *ngFor="let perm of group.value" class="flex items-center gap-3">
+              <app-toggle
+                [checked]="isPermissionAssigned(perm.id)"
+                (changed)="togglePermission(perm)"
+              ></app-toggle>
+              <div>
+                <p class="text-sm font-medium text-[#041627]">{{ perm.displayName }}</p>
+                <p *ngIf="perm.description" class="text-xs text-[#8192a7]">{{ perm.description }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-[#b7eaff] border border-[#6cd3f7] rounded-lg p-4 text-[#001f28] text-sm">
+          <p class="font-medium mb-1">Changes are applied immediately to all users with this role</p>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noSelection>
+      <div class="col-span-8 bg-[#f2f4f6] rounded-xl p-12 flex items-center justify-center text-center">
+        <div>
+          <span class="material-symbols-outlined text-5xl text-[#8192a7] block mb-4">info</span>
+          <p class="text-[#515f74]">Select a role to manage permissions</p>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Create/Edit Role Modal -->
+  <app-modal
+    [title]="showCreateModal() ? 'Create New Role' : 'Edit Role'"
+    [isOpen]="showCreateModal() || showEditModal()"
+    (closed)="showCreateModal.set(false); showEditModal.set(false)"
+  >
+    <form [formGroup]="roleForm" (ngSubmit)="saveRole()" class="space-y-4">
+      <div>
+        <label class="text-label text-[#8192a7] block mb-2">Role Name</label>
+        <input
+          formControlName="roleName"
+          type="text"
+          placeholder="e.g., Manager, Designer, Accountant"
+          class="input-base w-full text-[#041627]"
+        />
+      </div>
+      <div class="flex gap-3 justify-end pt-4">
+        <button
+          type="button"
+          (click)="showCreateModal.set(false); showEditModal.set(false)"
+          class="btn-secondary px-6 py-2"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          [disabled]="roleForm.invalid"
+          class="btn-primary px-6 py-2"
+        >
+          {{ showCreateModal() ? 'Create' : 'Update' }}
+        </button>
+      </div>
+    </form>
+  </app-modal>
+
+  <!-- Delete Confirmation Dialog -->
+  <app-confirm-dialog
+    [isOpen]="showDeleteConfirm()"
+    title="Delete Role"
+    message="Are you sure you want to delete this role? This action cannot be undone."
+    confirmLabel="Delete"
+    (confirmed)="deleteRole()"
+    (cancelled)="showDeleteConfirm.set(false)"
+  ></app-confirm-dialog>
+</div>

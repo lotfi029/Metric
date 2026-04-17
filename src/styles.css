@@ -1,3 +1,66 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 @import 'tailwindcss';
+
+* {
+  font-family: 'Inter', sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+[role="heading"] {
+  font-family: 'Manrope', sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+/* Utility classes for design system */
+.text-headline {
+  @apply font-['Manrope'] font-bold text-lg;
+}
+
+.text-headline-display {
+  @apply font-['Manrope'] font-black text-3xl;
+}
+
+.text-label {
+  @apply text-[10px] font-semibold uppercase tracking-widest;
+}
+
+.btn-primary {
+  @apply bg-gradient-to-br from-[#041627] to-[#1a2b3c] text-white rounded-lg px-6 py-3 font-medium hover:opacity-90 transition-opacity disabled:opacity-50;
+}
+
+.btn-secondary {
+  @apply bg-[#e0e3e5] text-[#041627] rounded-lg px-6 py-3 font-medium hover:bg-[#d5d9dc] transition-colors disabled:opacity-50;
+}
+
+.input-base {
+  @apply bg-[#f2f4f6] border-b-2 border-transparent focus:border-[#041627] focus:outline-none py-2 px-0 transition-colors;
+}
+
+.card-base {
+  @apply bg-white rounded-xl shadow-sm;
+}
+
+.sidebar-active {
+  @apply bg-[#1a2b3c] text-white border-r-4 border-[#6cd3f7];
+}

@@ -1,0 +1,79 @@
+<nav class="fixed left-0 top-0 h-full w-64 bg-[#041627] text-white flex flex-col p-6 font-['Manrope']">
+  <!-- Brand -->
+  <div class="mb-8">
+    <div class="text-2xl font-black">Metric</div>
+    <div class="text-[#8192a7] text-sm">Operations Suite</div>
+  </div>
+
+  <!-- Nav Links -->
+  <div class="flex-1 space-y-2">
+    <a
+      routerLink="/dashboard"
+      routerLinkActive="sidebar-active"
+      [routerLinkActiveOptions]="{ exact: false }"
+      class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#8192a7] hover:bg-[#1a2b3c] transition-colors"
+    >
+      <span class="material-symbols-outlined text-[#6cd3f7]">dashboard</span>
+      <span>Dashboard</span>
+    </a>
+
+    <a
+      routerLink="/users"
+      routerLinkActive="sidebar-active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#8192a7] hover:bg-[#1a2b3c] transition-colors"
+    >
+      <span class="material-symbols-outlined text-[#6cd3f7]">group</span>
+      <span>User Directory</span>
+    </a>
+
+    <a
+      routerLink="/roles"
+      routerLinkActive="sidebar-active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#8192a7] hover:bg-[#1a2b3c] transition-colors"
+    >
+      <span class="material-symbols-outlined text-[#6cd3f7]">shield_admin</span>
+      <span>Role Management</span>
+    </a>
+
+    <a
+      routerLink="/departments"
+      routerLinkActive="sidebar-active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#8192a7] hover:bg-[#1a2b3c] transition-colors"
+    >
+      <span class="material-symbols-outlined text-[#6cd3f7]">apartment</span>
+      <span>Departments</span>
+    </a>
+
+    <a
+      routerLink="/profile"
+      routerLinkActive="sidebar-active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#8192a7] hover:bg-[#1a2b3c] transition-colors"
+    >
+      <span class="material-symbols-outlined text-[#6cd3f7]">person</span>
+      <span>My Profile</span>
+    </a>
+  </div>
+
+  <!-- Bottom Actions -->
+  <div class="space-y-3 border-t border-[#1a2b3c] pt-4">
+    <a
+      routerLink="/users/add"
+      class="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-br from-[#041627] to-[#1a2b3c] border border-[#6cd3f7]/30 text-white hover:opacity-90 transition-opacity font-medium"
+    >
+      <span class="material-symbols-outlined">person_add</span>
+      <span class="text-sm">Add New User</span>
+    </a>
+
+    <button
+      (click)="logout()"
+      class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[#ba1a1a]/10 text-[#ba1a1a] hover:bg-[#ba1a1a]/20 transition-colors font-medium"
+    >
+      <span class="material-symbols-outlined">logout</span>
+      <span class="text-sm">Sign Out</span>
+    </button>
+  </div>
+</nav>
