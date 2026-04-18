@@ -18,6 +18,16 @@
     </a>
 
     <a
+      routerLink="/projects"
+      routerLinkActive="sidebar-active"
+      [routerLinkActiveOptions]="{ exact: false }"
+      class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#8192a7] hover:bg-[#1a2b3c] transition-colors"
+    >
+      <span class="material-symbols-outlined text-[#6cd3f7]">folder_open</span>
+      <span>Projects</span>
+    </a>
+
+    <a
       routerLink="/users"
       routerLinkActive="sidebar-active"
       [routerLinkActiveOptions]="{ exact: true }"

@@ -1,0 +1,137 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-['Manrope'] font-black text-[#041627]">Project Registry</h1>
+      <p class="text-[#515f74]">Manage all MOMS workflow projects</p>
+    </div>
+    <button
+      (click)="createNewProject()"
+      class="btn-primary px-8 py-3 flex items-center gap-2"
+    >
+      <span class="material-symbols-outlined">add</span>
+      New Project
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-xl p-6 card-base grid grid-cols-3 gap-6">
+    <!-- Stage Filter -->
+    <div>
+      <label class="text-label text-[#8192a7] block mb-3">Filter by Stage</label>
+      <select
+        [(ngModel)]="selectedStage"
+        (change)="onFilterChange()"
+        class="input-base w-full text-[#041627]"
+      >
+        <option [value]="null">All Stages</option>
+        <option *ngFor="let stage of stages" [value]="stage.number">
+          {{ stage.number }}. {{ stage.name }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Status Filter -->
+    <div>
+      <label class="text-label text-[#8192a7] block mb-3">Filter by Status</label>
+      <select
+        [(ngModel)]="selectedStatus"
+        (change)="onFilterChange()"
+        class="input-base w-full text-[#041627]"
+      >
+        <option [value]="null">All Statuses</option>
+        <option *ngFor="let status of statuses" [value]="status">
+          {{ status }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Office Filter -->
+    <div>
+      <label class="text-label text-[#8192a7] block mb-3">Filter by Office</label>
+      <select
+        [(ngModel)]="selectedOffice"
+        (change)="onFilterChange()"
+        class="input-base w-full text-[#041627]"
+      >
+        <option [value]="null">All Offices</option>
+        <option *ngFor="let office of offices" [value]="office">
+          {{ office }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading()" class="space-y-4">
+    <div class="h-48 bg-[#e0e3e5] rounded animate-pulse"></div>
+    <div class="h-48 bg-[#e0e3e5] rounded animate-pulse"></div>
+  </div>
+
+  <!-- Projects Grid -->
+  <div *ngIf="!isLoading()" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div
+      *ngFor="let project of filteredProjects()"
+      (click)="viewProject(project.id)"
+      class="bg-white rounded-xl p-6 card-base cursor-pointer hover:shadow-lg transition-shadow"
+    >
+      <!-- Header -->
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex-1">
+          <h3 class="text-lg font-['Manrope'] font-bold text-[#041627]">{{ project.projectCode }}</h3>
+          <p class="text-sm text-[#515f74]">{{ project.clientName }}</p>
+        </div>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full text-white" 
+            [class.bg-[#34a853]]="project.status === 'Active'" 
+            [class.bg-[#4285f4]]="project.status === 'Completed'" 
+            [class.bg-[#fbbc04]]="project.status === 'On-Hold'">
+            {{ project.status }}
+          </span>
+
+      <!-- Progress -->
+      <div class="mb-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs text-[#8192a7] font-medium">Progress</span>
+          <span class="text-xs font-bold text-[#041627]">{{ project.progressPercentage }}%</span>
+        </div>
+        <div class="h-2 bg-[#e8eaed] rounded-full overflow-hidden">
+          <div
+            class="h-full bg-gradient-to-r from-[#6cd3f7] to-[#0073e6]"
+            [style.width.%]="project.progressPercentage"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-2 gap-4 pt-4 border-t border-[#e8eaed]">
+        <div>
+          <p class="text-xs text-[#8192a7]">Days Elapsed</p>
+          <p class="text-lg font-bold text-[#041627]">{{ project.daysElapsed }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-[#8192a7]">Office</p>
+          <p class="text-lg font-bold text-[#041627]">{{ project.office }}</p>
+        </div>
+      </div>
+
+      <!-- Hover Indicator -->
+      <div class="mt-4 flex items-center justify-end gap-1 text-[#6cd3f7]">
+        <span class="text-xs font-medium">View Details</span>
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading() && filteredProjects().length === 0" class="bg-[#f2f4f6] rounded-xl p-12 text-center">
+    <span class="material-symbols-outlined text-5xl text-[#8192a7] block mb-4">folder_open</span>
+    <p class="text-[#515f74] mb-4">No projects found matching your filters</p>
+    <button
+      (click)="createNewProject()"
+      class="btn-primary px-8 py-3 inline-flex items-center gap-2"
+    >
+      <span class="material-symbols-outlined">add</span>
+      Create First Project
+    </button>
+  </div>
+</div>

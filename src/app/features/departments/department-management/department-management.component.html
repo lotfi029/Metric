@@ -102,7 +102,7 @@
           <div class="flex gap-2">
             <input
               [value]="newUserInput()"
-              (input)="newUserInput.set($event.target.value)"
+              (input)="onUserInputChange($event)"
               type="text"
               placeholder="Enter user ID..."
               class="input-base flex-1 text-[#041627]"

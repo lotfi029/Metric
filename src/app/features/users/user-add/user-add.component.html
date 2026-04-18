@@ -95,7 +95,7 @@
                 formControlName="roleId"
                 class="input-base w-full text-[#041627] border-0 border-b-2"
               >
-                <option value="null">Select a role</option>
+                <option [value]="null">Select a role</option>
                 <option *ngFor="let role of roles()" [value]="role.id">{{ role.roleName }}</option>
               </select>
             </div>
@@ -107,7 +107,7 @@
                 formControlName="departmentId"
                 class="input-base w-full text-[#041627] border-0 border-b-2"
               >
-                <option value="null">Select a department</option>
+                <option [value]="null">Select a department</option>
                 <option *ngFor="let dept of departments()" [value]="dept.id">{{ dept.name }}</option>
               </select>
             </div>

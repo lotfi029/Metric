@@ -1,14 +1,14 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PermissionService } from '@core/services/permission.service';
-import { RoleResponse } from '@core/models/role.model';
-import { PermissionResponse } from '@core/models/permission.model';
-import { ToastService } from '@core/services/toast.service';
-import { ModalComponent } from '@shared/components/modal/modal.component';
-import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
-import { ToggleComponent } from '@shared/components/toggle/toggle.component';
-import { RoleService } from '@app/core/services/role.service';
+import { PermissionService } from '../../../core/services/permission.service';
+import { RoleResponse } from '../../../core/models/role.model';
+import { PermissionResponse } from '../../../core/models/permission.model';
+import { ToastService } from '../../../core/services/toast.service';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { ToggleComponent } from '../../../shared/components/toggle/toggle.component';
+import { RoleService } from '../../../core/services/role.service';
 
 @Component({
   selector: 'app-role-management',

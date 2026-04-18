@@ -1,0 +1,201 @@
+<div class="space-y-8" *ngIf="!isLoading(); else loading">
+  <!-- Header -->
+  <div class="flex items-start justify-between mb-8">
+    <div>
+      <div class="flex items-center gap-3 mb-2">
+        <h1 class="text-3xl font-['Manrope'] font-black text-[#041627]">{{ project()?.projectCode }}</h1>
+        <span class="text-xs font-semibold px-3 py-1 rounded-full text-white" 
+          [class.bg-[#34a853]]="project()?.status === 'Active'" 
+          [class.bg-[#4285f4]]="project()?.status === 'Completed'" 
+          [class.bg-[#fbbc04]]="project()?.status === 'On-Hold'">
+          {{ project()?.status }}
+        </span>
+      </div>
+      <p class="text-[#515f74]">Client: <span class="font-medium text-[#041627]">{{ project()?.clientName }}</span></p>
+      <p class="text-[#515f74] text-sm">Started: <span class="font-medium">{{ project()?.startDate | date: 'MMM dd, yyyy' }}</span> • <span>{{ project()?.daysElapsed }} days elapsed</span></p>
+    </div>
+    <button
+      (click)="loadProject()"
+      class="text-[#6cd3f7] hover:bg-[#e6f3f9] px-4 py-2 rounded-lg transition-colors"
+    >
+      <span class="material-symbols-outlined">refresh</span>
+    </button>
+  </div>
+
+  <!-- 8-Stage Pipeline -->
+  <div class="bg-white rounded-xl p-8 card-base">
+    <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-8">MOMS Workflow Pipeline</h2>
+
+    <div class="flex items-center justify-between gap-2 mb-8 overflow-x-auto pb-4">
+      <!-- Stages -->
+      <div *ngFor="let stage of [1, 2, 3, 4, 5, 6, 7, 8]; let last = last" class="flex items-center gap-2 flex-shrink-0">
+        <!-- Stage Button -->
+        <button
+          (click)="navigateToStage(stage)"
+          class="flex flex-col items-center gap-2 p-3 rounded-lg transition-all hover:shadow-md"
+          [style.background-color]="stage === project()?.currentStage ? getStageColor(stage) : '#f2f4f6'"
+          [class.text-white]="stage === project()?.currentStage"
+          [class.text-[#041627]]="stage !== project()?.currentStage"
+        >
+          <span class="text-xs font-bold">{{ stage }}</span>
+          <span class="text-[10px] font-semibold line-clamp-1 max-w-[60px]">{{ stageNames[stage - 1] }}</span>
+        </button>
+
+        <!-- Connector Arrow (if not last) -->
+        <div
+          *ngIf="!last"
+          class="w-6 h-1 flex-shrink-0"
+          [style.background-color]="stage < project()!.currentStage ? '#34a853' : '#e8eaed'"
+        ></div>
+      </div>
+    </div>
+
+    <!-- Gate Status Legend -->
+    <div class="grid grid-cols-3 gap-4 pt-6 border-t border-[#e8eaed]">
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full" style="background-color: #34a853;"></div>
+        <span class="text-xs text-[#8192a7]">Gate Cleared</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full" style="background-color: #fbbc04;"></div>
+        <span class="text-xs text-[#8192a7]">Under Review</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full" style="background-color: #ba1a1a;"></div>
+        <span class="text-xs text-[#8192a7]">Gate Locked</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Current Stage Details -->
+  <div class="grid grid-cols-12 gap-8">
+    <!-- Stage Overview (col-span-8) -->
+    <div class="col-span-8 bg-white rounded-xl p-8 card-base">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-lg font-['Manrope'] font-bold text-[#041627]">
+            Stage {{ project()?.currentStage }}: {{ stageNames[project()!.currentStage - 1] }}
+          </h2>
+          <p class="text-sm text-[#8192a7] mt-1">Current active stage</p>
+        </div>
+        <button
+          (click)="navigateToStage(project()!.currentStage)"
+          class="btn-primary px-6 py-2 flex items-center gap-2"
+        >
+          <span>Continue Stage</span>
+          <span class="material-symbols-outlined">arrow_forward</span>
+        </button>
+      </div>
+
+      <!-- Stage Info Grid -->
+      <div class="grid grid-cols-3 gap-4 pt-6 border-t border-[#e8eaed]">
+        <div>
+          <p class="text-xs text-[#8192a7] mb-1">Office Responsible</p>
+          <p class="font-semibold text-[#041627]">{{ project()?.stageStatuses && project()!.stageStatuses[project()!.currentStage - 1]?.officeResponsible || 'N/A' }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-[#8192a7] mb-1">Assigned To</p>
+          <p class="font-semibold text-[#041627]">{{ project()?.stageStatuses && project()!.stageStatuses[project()!.currentStage - 1]?.assignedTo || 'Unassigned' }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-[#8192a7] mb-1">Gate Status</p>
+          <div
+            class="inline-block px-3 py-1 rounded-full text-white text-xs font-semibold"
+            [style.background-color]="getGateColor(project()!.currentStage)"
+          >
+            {{ project()?.stageStatuses && project()!.stageStatuses[project()!.currentStage - 1]?.gateStatus?.gateStatus || 'Pending' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats (col-span-4) -->
+    <div class="col-span-4 space-y-4">
+      <!-- Project Info Card -->
+      <div class="bg-white rounded-xl p-6 card-base">
+        <h3 class="text-sm font-['Manrope'] font-bold text-[#041627] mb-4">Project Info</h3>
+        <div class="space-y-3">
+          <div>
+            <p class="text-xs text-[#8192a7]">Contract Value</p>
+            <p class="font-semibold text-[#041627]">${{ project()?.contractValue | number: '1.0-0' }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-[#8192a7]">Progress</p>
+            <p class="font-semibold text-[#041627]">{{ project()?.progressPercentage }}%</p>
+          </div>
+          <div>
+            <p class="text-xs text-[#8192a7]">Office</p>
+            <p class="font-semibold text-[#041627]">{{ project()?.office }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Documents Card -->
+      <div class="bg-white rounded-xl p-6 card-base">
+        <h3 class="text-sm font-['Manrope'] font-bold text-[#041627] mb-4">Recent Documents</h3>
+        <div class="space-y-2">
+          <div *ngFor="let doc of project()?.recentDocuments?.slice(0, 3)" class="text-xs">
+            <p class="text-[#041627] font-medium truncate">{{ doc.fileName }}</p>
+            <p class="text-[#8192a7]">{{ doc.uploadDate | date: 'MMM dd, yyyy' }}</p>
+          </div>
+          <div *ngIf="!project()?.recentDocuments || project()!.recentDocuments.length === 0" class="text-[#8192a7] text-xs">
+            No recent documents
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Documents & Checklist Section -->
+  <div class="grid grid-cols-2 gap-8">
+    <!-- Required Checklist Items -->
+    <div class="bg-white rounded-xl p-8 card-base">
+      <h3 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Current Stage Checklist</h3>
+      <div class="space-y-3">
+        <div *ngFor="let item of project()?.checklists?.slice(0, 5)" class="flex items-start gap-3 p-3 bg-[#f2f4f6] rounded-lg">
+          <div class="w-5 h-5 rounded border-2 border-[#6cd3f7] mt-1 flex items-center justify-center flex-shrink-0" [class.bg-[#6cd3f7]]="item.isCompleted">
+            <span *ngIf="item.isCompleted" class="material-symbols-outlined text-white text-sm">check</span>
+          </div>
+          <div class="flex-1">
+            <p class="font-medium text-[#041627] text-sm">{{ item.title }}</p>
+            <p class="text-xs text-[#8192a7]">{{ item.description }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Required Documents -->
+    <div class="bg-white rounded-xl p-8 card-base">
+      <h3 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Required Documents</h3>
+      <div class="space-y-3">
+        <div *ngFor="let doc of project()?.recentDocuments?.slice(0, 5)" class="flex items-start gap-3 p-3 bg-[#f2f4f6] rounded-lg">
+          <span class="material-symbols-outlined text-[#6cd3f7]">description</span>
+          <div class="flex-1">
+            <p class="font-medium text-[#041627] text-sm">{{ doc.fileName }}</p>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-xs font-semibold px-2 py-1 rounded-full" 
+                [class.bg-[#c8e6c9]]="doc.approvalStatus === 'Approved'" 
+                [class.bg-[#ffccbc]]="doc.approvalStatus === 'Pending'" 
+                [class.bg-[#ffcdd2]]="doc.approvalStatus === 'Rejected'">
+                {{ doc.approvalStatus }}
+              </span>
+              <span class="text-xs text-[#8192a7]">v{{ doc.version }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Template -->
+<ng-template #loading>
+  <div class="space-y-4">
+    <div class="h-20 bg-[#e0e3e5] rounded animate-pulse"></div>
+    <div class="h-64 bg-[#e0e3e5] rounded animate-pulse"></div>
+    <div class="grid grid-cols-2 gap-8">
+      <div class="h-96 bg-[#e0e3e5] rounded animate-pulse"></div>
+      <div class="h-96 bg-[#e0e3e5] rounded animate-pulse"></div>
+    </div>
+  </div>
+</ng-template>

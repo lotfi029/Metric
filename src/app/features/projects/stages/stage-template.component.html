@@ -1,0 +1,196 @@
+<div class="space-y-6" *ngIf="!isLoading(); else loading">
+  <!-- Header -->
+  <div class="flex items-start justify-between mb-8">
+    <div>
+      <div class="flex items-center gap-3 mb-2">
+        <button
+          (click)="goBack()"
+          class="text-[#8192a7] hover:text-[#041627] transition-colors"
+        >
+          <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <h1 class="text-3xl font-['Manrope'] font-black text-[#041627]">
+          Stage {{ stage }}: {{ stageName }}
+        </h1>
+      </div>
+      <p class="text-[#515f74] ml-10">{{ stageDescription }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-12 gap-8">
+    <!-- Main Content (col-span-8) -->
+    <div class="col-span-8 space-y-6">
+      <!-- Depends-on Section -->
+      <div class="bg-white rounded-xl p-8 card-base border-l-4 border-[#6cd3f7]">
+        <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-4">Prerequisites</h2>
+        <p class="text-sm text-[#515f74] mb-4">This stage depends on completion of the previous stage</p>
+        <div class="flex items-center gap-3 p-4 rounded-lg" [class.bg-[#e8f5e9]]="stage === 1" [class.bg-[#fce4ec]]="stage > 1 && !gateStatus()?.gateStatus?.includes('Cleared')">
+          <span class="material-symbols-outlined" [class.text-[#34a853]]="stage === 1" [class.text-[#ba1a1a]]="stage > 1 && !gateStatus()?.gateStatus?.includes('Cleared')">
+            {{ stage === 1 || gateStatus()?.gateStatus === 'Cleared' ? 'check_circle' : 'lock' }}
+          </span>
+          <div>
+            <p class="font-medium text-[#041627] text-sm" *ngIf="stage === 1">First stage - no prerequisites</p>
+            <p class="font-medium text-[#041627] text-sm" *ngIf="stage > 1">
+              {{ gateStatus()?.gateStatus === 'Cleared' ? 'Previous stage cleared' : 'Previous stage pending' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Checklist Panel -->
+      <div class="bg-white rounded-xl p-8 card-base">
+        <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Stage Checklist</h2>
+        <div class="space-y-3">
+          <div
+            *ngFor="let item of checklistItems()"
+            class="flex items-start gap-4 p-4 rounded-lg border border-[#e8eaed] hover:border-[#6cd3f7] transition-colors"
+          >
+            <button
+              (click)="completeChecklistItem(item.id)"
+              class="w-6 h-6 rounded border-2 border-[#6cd3f7] flex items-center justify-center flex-shrink-0 mt-1 transition-colors"
+              [class.bg-[#6cd3f7]]="item.isCompleted"
+              [disabled]="isSaving()"
+            >
+              <span *ngIf="item.isCompleted" class="material-symbols-outlined text-white text-sm">check</span>
+            </button>
+            <div class="flex-1">
+              <p class="font-medium text-[#041627]" [class.line-through]="item.isCompleted">
+                {{ item.title }}
+              </p>
+              <p class="text-sm text-[#8192a7] mt-1">{{ item.description }}</p>
+              <p *ngIf="item.isCompleted" class="text-xs text-[#34a853] mt-2">
+                ✓ Completed by {{ item.completedBy }} on {{ item.completedDate | date: 'MMM dd, yyyy' }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Documents Panel -->
+      <div class="bg-white rounded-xl p-8 card-base">
+        <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Required Documents</h2>
+        <div class="space-y-3">
+          <div
+            *ngFor="let doc of documents()"
+            class="flex items-start gap-4 p-4 rounded-lg border border-[#e8eaed] hover:border-[#6cd3f7] transition-colors"
+          >
+            <span class="material-symbols-outlined text-[#6cd3f7] mt-1">description</span>
+            <div class="flex-1">
+              <p class="font-medium text-[#041627]">{{ doc.fileName }}</p>
+              <div class="flex items-center gap-2 mt-2">
+                <span class="text-xs text-[#8192a7]">
+                  v{{ doc.version }} • Uploaded {{ doc.uploadDate | date: 'MMM dd, yyyy' }}
+                </span>
+              </div>
+            </div>
+            <span class="text-xs font-semibold px-3 py-1 rounded-full" [class.bg-[#c8e6c9]]="doc.approvalStatus === 'Approved'" [class.bg-[#ffccbc]]="doc.approvalStatus === 'Pending'" [class.bg-[#ffcdd2]]="doc.approvalStatus === 'Rejected'">
+              {{ doc.approvalStatus }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar (col-span-4) -->
+    <div class="col-span-4 space-y-6">
+      <!-- Stage Gate Section -->
+      <div class="bg-white rounded-xl p-8 card-base">
+        <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-4">Stage Gate</h2>
+        
+        <!-- Gate Status -->
+        <div class="mb-6 p-4 rounded-lg" [class.bg-[#e8f5e9]]="gateStatus()?.gateStatus === 'Cleared'" [class.bg-[#fce4ec]]="gateStatus()?.gateStatus === 'Locked'" [class.bg-[#fff3e0]]="gateStatus()?.gateStatus === 'Review'">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="material-symbols-outlined text-lg" [class.text-[#34a853]]="gateStatus()?.gateStatus === 'Cleared'" [class.text-[#ba1a1a]]="gateStatus()?.gateStatus === 'Locked'" [class.text-[#fbbc04]]="gateStatus()?.gateStatus === 'Review'">
+              {{ gateStatus()?.gateStatus === 'Cleared' ? 'check_circle' : (gateStatus()?.gateStatus === 'Locked' ? 'lock' : 'schedule') }}
+            </span>
+            <span class="font-bold text-[#041627]">{{ gateStatus()?.gateStatus || 'Pending' }}</span>
+          </div>
+          <p class="text-xs text-[#515f74]">
+            {{ gateStatus()?.gateStatus === 'Cleared' ? 'Gate cleared - ready to advance' : (gateStatus()?.gateStatus === 'Locked' ? 'Gate locked - complete requirements' : 'Gate under review') }}
+          </p>
+        </div>
+
+        <!-- Gate Conditions -->
+        <div class="space-y-2 mb-6">
+          <h3 class="text-sm font-semibold text-[#041627] mb-3">Requirements</h3>
+          <div class="flex items-center gap-2 text-xs" *ngIf="gateStatus()?.conditions">
+            <span class="material-symbols-outlined text-sm" [class.text-[#34a853]]="gateStatus()?.conditions?.checklistComplete" [class.text-[#ba1a1a]]="!gateStatus()?.conditions?.checklistComplete">
+              {{ gateStatus()?.conditions?.checklistComplete ? 'check' : 'close' }}
+            </span>
+            <span>Checklist Complete</span>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <span class="material-symbols-outlined text-sm" [class.text-[#34a853]]="gateStatus()?.conditions?.documentsUploaded" [class.text-[#ba1a1a]]="!gateStatus()?.conditions?.documentsUploaded">
+              {{ gateStatus()?.conditions?.documentsUploaded ? 'check' : 'close' }}
+            </span>
+            <span>Documents Uploaded</span>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <span class="material-symbols-outlined text-sm" [class.text-[#34a853]]="gateStatus()?.conditions?.clientApproved" [class.text-[#ba1a1a]]="!gateStatus()?.conditions?.clientApproved">
+              {{ gateStatus()?.conditions?.clientApproved ? 'check' : 'close' }}
+            </span>
+            <span>Client Approved</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-2">
+          <button
+            *ngIf="gateStatus()?.gateStatus !== 'Cleared'"
+            (click)="approveStageGate()"
+            [disabled]="isSaving()"
+            class="w-full btn-primary px-4 py-2 text-sm flex items-center justify-center gap-2"
+          >
+            <span *ngIf="!isSaving()">Approve Gate</span>
+            <span *ngIf="isSaving()" class="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></span>
+          </button>
+          <button
+            *ngIf="gateStatus()?.gateStatus === 'Cleared' && stage < 8"
+            (click)="advanceToNextStage()"
+            [disabled]="isSaving()"
+            class="w-full btn-primary px-4 py-2 text-sm flex items-center justify-center gap-2"
+          >
+            <span *ngIf="!isSaving()">Advance to Stage {{ stage + 1 }}</span>
+            <span *ngIf="isSaving()" class="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Stage Info -->
+      <div class="bg-white rounded-xl p-8 card-base">
+        <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-4">Stage Info</h2>
+        <div class="space-y-4 text-sm">
+          <div>
+            <p class="text-[#8192a7] text-xs mb-1">Office Responsible</p>
+            <p class="font-semibold text-[#041627]">{{ stageData()?.officeResponsible || 'Not assigned' }}</p>
+          </div>
+          <div>
+            <p class="text-[#8192a7] text-xs mb-1">Assigned To</p>
+            <p class="font-semibold text-[#041627]">{{ stageData()?.assignedTo || 'Unassigned' }}</p>
+          </div>
+          <div>
+            <p class="text-[#8192a7] text-xs mb-1">Status</p>
+            <p class="font-semibold text-[#041627]">{{ stageData()?.status || 'Pending' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Template -->
+<ng-template #loading>
+  <div class="space-y-4">
+    <div class="h-20 bg-[#e0e3e5] rounded animate-pulse"></div>
+    <div class="grid grid-cols-3 gap-8">
+      <div class="col-span-2 space-y-4">
+        <div class="h-64 bg-[#e0e3e5] rounded animate-pulse"></div>
+        <div class="h-96 bg-[#e0e3e5] rounded animate-pulse"></div>
+      </div>
+      <div class="space-y-4">
+        <div class="h-48 bg-[#e0e3e5] rounded animate-pulse"></div>
+        <div class="h-48 bg-[#e0e3e5] rounded animate-pulse"></div>
+      </div>
+    </div>
+  </div>
+</ng-template>

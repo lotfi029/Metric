@@ -24,7 +24,7 @@ export class LoginComponent {
     private router: Router
   ) {
     this.loginForm = this.fb.group({
-      userName: ['', [Validators.required]],
+      email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
@@ -40,7 +40,6 @@ export class LoginComponent {
 
     this.authService.login(this.loginForm.value).subscribe({
       next: (response) => {
-        this.authService.storeTokens(response);
         this.toastService.showSuccess('Login successful');
         this.router.navigate(['/dashboard']);
         this.isLoading.set(false);
@@ -54,8 +53,8 @@ export class LoginComponent {
     });
   }
 
-  get userName() {
-    return this.loginForm.get('userName');
+  get email() {
+    return this.loginForm.get('email');
   }
 
   get password() {

@@ -126,6 +126,10 @@ export class DepartmentManagementComponent implements OnInit {
     });
   }
 
+  onUserInputChange(event: Event) {
+    this.newUserInput.set((event.target as HTMLInputElement).value);
+  }
+
   removeUserFromDept(userId: string) {
     if (!this.selectedDept()) return;
 

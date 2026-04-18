@@ -3,8 +3,56 @@
 
 @import 'tailwindcss';
 
+@theme {
+  --color-primary-50: #f0f7ff;
+  --color-primary-100: #e0efff;
+  --color-primary-200: #bae0ff;
+  --color-primary-300: #7ecaff;
+  --color-primary-400: #39b2ff;
+  --color-primary-500: #0d9aff;
+  --color-primary-600: #0073e6;
+  --color-primary-700: #0055b8;
+  --color-primary-800: #003d94;
+  --color-primary-900: #002e6f;
+  
+  --color-accent-success: #34a853;
+  --color-accent-warning: #fbbc04;
+  --color-accent-error: #ea4335;
+  --color-accent-info: #4285f4;
+  
+  --color-neutral-50: #f8f9fa;
+  --color-neutral-100: #e8eaed;
+  --color-neutral-500: #9aa0a6;
+  --color-neutral-700: #3c4043;
+  --color-neutral-900: #202124;
+}
+
 * {
   font-family: 'Inter', sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: auto;
+}
+
+body {
+  background-color: #f5f5f5;
+}
+
+app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-shell-main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 h1,
@@ -15,13 +63,6 @@ h5,
 h6,
 [role="heading"] {
   font-family: 'Manrope', sans-serif;
-}
-
-html,
-body {
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
 }
 
 .material-symbols-outlined {
@@ -47,6 +88,70 @@ body {
 
 .btn-primary {
   @apply bg-gradient-to-br from-[#041627] to-[#1a2b3c] text-white rounded-lg px-6 py-3 font-medium hover:opacity-90 transition-opacity disabled:opacity-50;
+}
+
+/* Card utilities */
+.card-base {
+  @apply border border-[#e8eaed] shadow-sm;
+}
+
+.input-base {
+  @apply border border-[#e8eaed] rounded-lg px-4 py-3 text-sm outline-none transition-colors focus:border-[#0073e6] focus:ring-2 focus:ring-[#bae0ff]/30;
+}
+
+/* Toast animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-1rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToTop {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-1rem);
+    opacity: 0;
+  }
+}
+
+.animate-toast {
+  animation: slideInFromTop 0.3s ease-out, slideOutToTop 0.3s ease-out 4.7s forwards;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #999;
 }
 
 .btn-secondary {

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { LoginRequest, AuthResponse, RefreshTokenRequest } from '../models/auth.model';
 import { Router } from '@angular/router';
-import { catchError, of } from 'rxjs';
+import { catchError, of, tap, finalize } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +19,9 @@ export class AuthService {
 
   login(request: LoginRequest) {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, request).pipe(
+      tap(response => this.storeTokens(response)),
       catchError(err => {
+        console.log(request);
         console.error('Login failed:', err);
         throw err;
       })
@@ -34,14 +36,16 @@ export class AuthService {
   }
 
   refreshToken() {
+    const token = this.getToken();
     const refreshToken = this.getRefreshToken();
     if (!refreshToken) {
       this.logout();
       return;
     }
 
-    const request: RefreshTokenRequest = { refreshToken };
+    const request = { token, refreshToken };
     return this.http.post<AuthResponse>(`${this.apiUrl}/refresh-token`, request).pipe(
+      tap(response => this.storeTokens(response)),
       catchError(err => {
         console.error('Token refresh failed:', err);
         this.logout();
@@ -63,13 +67,15 @@ export class AuthService {
   }
 
   logout() {
-    this.revokeRefreshToken().subscribe(() => {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('token_expiration');
-      this.isAuthenticated.set(false);
-      this.router.navigate(['/login']);
-    });
+    this.revokeRefreshToken().pipe(
+      finalize(() => {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('token_expiration');
+        this.isAuthenticated.set(false);
+        this.router.navigate(['/login']);
+      })
+    ).subscribe();
   }
 
   getToken(): string | null {

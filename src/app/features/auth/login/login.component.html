@@ -28,17 +28,18 @@
             {{ errorMessage() }}
           </div>
 
-          <!-- Username -->
+          <!-- Email -->
           <div>
-            <label class="text-label text-[#8192a7] block mb-3">Username</label>
+            <label class="text-label text-[#8192a7] block mb-3">Email</label>
             <input
-              formControlName="userName"
-              type="text"
-              placeholder="Enter your username"
+              formControlName="email"
+              type="email"
+              placeholder="Enter your email"
               class="input-base w-full text-[#041627] placeholder-[#8192a7]"
             />
-            <div *ngIf="userName?.invalid && userName?.touched" class="text-[#ba1a1a] text-xs mt-1">
-              Username is required
+            <div *ngIf="email?.invalid && email?.touched" class="text-[#ba1a1a] text-xs mt-1">
+              <span *ngIf="email?.hasError('required')">Email is required</span>
+              <span *ngIf="email?.hasError('email')">Please enter a valid email</span>
             </div>
           </div>
 
