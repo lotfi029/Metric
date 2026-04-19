@@ -1,5 +1,4 @@
 import { Injectable, signal } from '@angular/core';
-import { Router } from '@angular/router';
 
 export interface Toast {
   id: string;
@@ -14,7 +13,7 @@ export interface Toast {
 export class ToastService {
   toasts = signal<Toast[]>([]);
 
-  constructor(private router: Router) { }
+  constructor() { }
 
   show(message: string, type: 'success' | 'error' | 'info' = 'info', duration = 3000) {
     const id = Math.random().toString(36).substr(2, 9);

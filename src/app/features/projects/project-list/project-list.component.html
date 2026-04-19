@@ -71,7 +71,7 @@
   <!-- Projects Grid -->
   <div *ngIf="!isLoading()" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     <div
-      *ngFor="let project of filteredProjects()"
+      *ngFor="let project of projects()"
       (click)="viewProject(project.id)"
       class="bg-white rounded-xl p-6 card-base cursor-pointer hover:shadow-lg transition-shadow"
     >
@@ -123,7 +123,7 @@
   </div>
 
   <!-- Empty State -->
-  <div *ngIf="!isLoading() && filteredProjects().length === 0" class="bg-[#f2f4f6] rounded-xl p-12 text-center">
+  <div *ngIf="!isLoading() && projects().length === 0" class="bg-[#f2f4f6] rounded-xl p-12 text-center">
     <span class="material-symbols-outlined text-5xl text-[#8192a7] block mb-4">folder_open</span>
     <p class="text-[#515f74] mb-4">No projects found matching your filters</p>
     <button

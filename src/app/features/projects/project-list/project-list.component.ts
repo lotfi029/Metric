@@ -22,23 +22,6 @@ export class ProjectListComponent implements OnInit {
   selectedStatus = signal<string | null>(null);
   selectedOffice = signal<string | null>(null);
 
-  // Filtered projects computed
-  filteredProjects = computed(() => {
-    let result = this.projects();
-
-    if (this.selectedStage()) {
-      result = result.filter(p => p.currentStage === this.selectedStage());
-    }
-    if (this.selectedStatus()) {
-      result = result.filter(p => p.status === this.selectedStatus());
-    }
-    if (this.selectedOffice()) {
-      result = result.filter(p => p.office === this.selectedOffice());
-    }
-
-    return result;
-  });
-
   stages = Array.from({ length: 8 }, (_, i) => ({ number: i + 1, name: this.getStageName(i + 1) }));
   statuses = ['Active', 'Completed', 'On-Hold'];
   offices = ['Design', 'Technical'];

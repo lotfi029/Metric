@@ -40,6 +40,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/departments/department-management/department-management.component').then(m => m.DepartmentManagementComponent)
       },
       {
+        path: 'audit',
+        loadComponent: () => import('./features/audit/audit-log/audit-log.component').then(m => m.AuditLogComponent),
+        data: { title: 'Audit Trail' }
+      },
+      {
         path: 'kpi/:id',
         loadComponent: () => import('./features/kpi/kpi-report/kpi-report.component').then(m => m.KpiReportComponent)
       },
