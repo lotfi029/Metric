@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { TopnavComponent } from '../components/topnav/topnav.component';
-import { UserService } from '@core/services/user.service';
 import { DetailedUserResponse } from '@core/models/user.model';
+import { MOCK_EMPLOYEES } from '@core/mock/index';
 
 @Component({
   selector: 'app-shell',
@@ -24,17 +24,20 @@ import { DetailedUserResponse } from '@core/models/user.model';
   styles: []
 })
 export class ShellComponent implements OnInit {
-  userService = inject(UserService);
   currentUser = signal<DetailedUserResponse | null>(null);
 
   ngOnInit() {
-    this.userService.getCurrentUser().subscribe({
-      next: (user) => {
-        this.currentUser.set(user);
-      },
-      error: (err) => {
-        console.error('Failed to load current user:', err);
-      }
-    });
+    // Use mock employee for current user (emp-001 = Sara Nasser = "manager" account)
+    const currentMock = MOCK_EMPLOYEES[0];
+    this.currentUser.set({
+      id: currentMock.id,
+      firstName: currentMock.firstName,
+      lastName: currentMock.lastName,
+      userName: currentMock.userName,
+      email: currentMock.email,
+      isActive: currentMock.isActive,
+      createdAt: currentMock.createdAt,
+      lastLoginAt: currentMock.lastLoginAt
+    } as DetailedUserResponse);
   }
 }

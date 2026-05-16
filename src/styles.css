@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 @import 'tailwindcss';
@@ -28,7 +28,11 @@
 }
 
 * {
-  font-family: 'Inter', sans-serif;
+  font-family: 'IBM Plex Sans', 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+}
+
+[dir="rtl"] * {
+  font-family: 'IBM Plex Sans Arabic', 'IBM Plex Sans', 'Inter', sans-serif;
 }
 
 html,
@@ -150,6 +154,41 @@ h6,
   border-radius: 4px;
 }
 
+/* ── Typography helpers ───────────────────────────────────────── */
+.stat-number {
+  @apply text-4xl font-['Manrope'] font-black text-[#041627];
+}
+.section-title {
+  @apply font-['Manrope'] font-bold text-[#041627] text-lg;
+}
+.label-xs {
+  @apply text-[9px] uppercase tracking-widest text-[#8192a7] font-bold;
+}
+
+/* ── Card variants ────────────────────────────────────────────── */
+.card-dark {
+  @apply bg-[#041627] rounded-xl border border-[#1a2b3c];
+}
+.card-cyan-border {
+  @apply bg-white rounded-xl border border-[#eceef0] border-l-4 border-l-[#6cd3f7];
+}
+
+/* ── Table helpers ────────────────────────────────────────────── */
+.th {
+  @apply px-6 py-3 text-left text-[9px] uppercase tracking-widest text-[#8192a7] font-bold;
+}
+.td {
+  @apply px-6 py-4 text-sm text-[#515f74];
+}
+
+/* ── Ensure material icons render at correct weight ───────────── */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background: #999;
 }
@@ -168,4 +207,12 @@ h6,
 
 .sidebar-active {
   @apply bg-[#1a2b3c] text-white border-r-4 border-[#6cd3f7];
+}
+
+/* Sidebar nav items */
+.nav-link {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#8192a7] hover:bg-[#1a2b3c] hover:text-white transition-all duration-150 text-sm font-medium;
+}
+.nav-active {
+  @apply bg-[#1a2b3c] text-white border-l-[3px] border-[#6cd3f7];
 }

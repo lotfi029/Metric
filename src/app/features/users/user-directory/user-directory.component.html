@@ -1,139 +1,237 @@
 <div class="space-y-6">
-  <!-- Header -->
-  <div class="mb-8">
-    <h1 class="text-3xl font-['Manrope'] font-black text-[#041627] mb-2">Organizational Registry</h1>
-    <p class="text-[#515f74]">{{ totalCount }} users in the system</p>
-  </div>
-
-  <!-- Stats Cards -->
-  <div class="grid grid-cols-2 gap-6">
-    <div class="bg-white rounded-xl p-6 card-base">
-      <p class="text-[#515f74] text-sm font-medium mb-2">Total Users</p>
-      <p class="text-3xl font-['Manrope'] font-black text-[#041627]">{{ totalCount }}</p>
+  <!-- Header with view toggle -->
+  <div class="flex justify-between items-center">
+    <div class="space-y-1">
+      <h1 class="text-2xl font-['Manrope'] font-bold text-[#041627]">Employee Directory</h1>
+      <p class="text-[#8192a7]">{{ filteredEmployees().length }} of {{ allEmployees().length }} employees</p>
     </div>
-    <div class="bg-white rounded-xl p-6 card-base">
-      <p class="text-[#515f74] text-sm font-medium mb-2">Active Users</p>
-      <p class="text-3xl font-['Manrope'] font-black text-[#6cd3f7]">{{ activeCount }}</p>
-      <div class="w-full bg-[#e0e3e5] rounded-full h-2 mt-3">
-        <div class="bg-[#6cd3f7] h-2 rounded-full" [style.width.%]="(activeCount / totalCount) * 100"></div>
-      </div>
-    </div>
+    <button 
+      (click)="viewMode.set(viewMode() === 'grid' ? 'list' : 'grid')"
+      class="flex items-center gap-2 px-4 py-2 bg-[#041627] text-white rounded-lg hover:bg-[#1a2b3c] transition-colors"
+    >
+      <span class="material-symbols-outlined text-lg">{{ viewMode() === 'grid' ? 'view_list' : 'dashboard' }}</span>
+      {{ viewMode() === 'grid' ? 'List' : 'Grid' }} View
+    </button>
   </div>
 
   <!-- Filters -->
-  <div class="bg-white rounded-xl p-6 card-base space-y-4">
-    <h3 class="font-['Manrope'] font-bold text-[#041627]">Filters</h3>
-    <form [formGroup]="filterForm" class="grid grid-cols-4 gap-4">
-      <div>
-        <label class="text-label text-[#8192a7] block mb-2">Role</label>
-        <select
-          formControlName="roleId"
-          class="input-base w-full text-[#041627] border-0 border-b-2"
-        >
-          <option value="">All Roles</option>
-          <option *ngFor="let role of roles()" [value]="role.id">{{ role.roleName }}</option>
-        </select>
-      </div>
-      <div>
-        <label class="text-label text-[#8192a7] block mb-2">Status</label>
-        <select
-          formControlName="status"
-          class="input-base w-full text-[#041627] border-0 border-b-2"
-        >
-          <option value="">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-      </div>
-      <div class="col-span-2">
-        <label class="text-label text-[#8192a7] block mb-2">Search</label>
-        <input
-          formControlName="search"
-          type="text"
-          placeholder="Search by name or email..."
-          class="input-base w-full text-[#041627] placeholder-[#8192a7]"
-        />
-      </div>
-    </form>
-  </div>
-
-  <!-- Users Table -->
-  <div class="bg-white rounded-xl overflow-hidden card-base">
-    <div *ngIf="isLoading()" class="p-8 space-y-4">
-      <div *ngFor="let i of [1, 2, 3, 4, 5]" class="h-16 bg-[#e0e3e5] rounded animate-pulse"></div>
+  <div class="grid grid-cols-4 gap-4">
+    <!-- Search -->
+    <div>
+      <label class="label-xs">Search by name, email, or title</label>
+      <input 
+        [(ngModel)]="searchQuery"
+        type="text" 
+        placeholder="e.g., Sara, sara@..." 
+        class="w-full px-3 py-2 border border-[#eceef0] rounded-lg text-sm focus:ring-2 focus:ring-[#6cd3f7] outline-none"
+      />
     </div>
 
-    <table *ngIf="!isLoading()" class="w-full">
-      <thead class="bg-[#e0e3e5] text-[10px] uppercase tracking-widest font-bold text-[#44474c]">
+    <!-- Department filter -->
+    <div>
+      <label class="label-xs">Filter by Department</label>
+      <select 
+        [(ngModel)]="deptFilter"
+        class="w-full px-3 py-2 border border-[#eceef0] rounded-lg text-sm focus:ring-2 focus:ring-[#6cd3f7] outline-none"
+      >
+        <option value="">All Departments</option>
+        <option *ngFor="let dept of departments" [value]="dept.id">
+          {{ dept.name }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Role level filter -->
+    <div>
+      <label class="label-xs">Filter by Role Level</label>
+      <select 
+        [(ngModel)]="roleFilter"
+        class="w-full px-3 py-2 border border-[#eceef0] rounded-lg text-sm focus:ring-2 focus:ring-[#6cd3f7] outline-none"
+      >
+        <option value="">All Roles</option>
+        <option *ngFor="let role of roleLevels" [value]="role">
+          {{ role | uppercase }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Active count -->
+    <div class="flex flex-col">
+      <label class="label-xs">Active Status</label>
+      <div class="flex items-center gap-2 h-10">
+        <span class="stat-number">{{ activeCount }}</span>
+        <span class="text-xs text-[#8192a7]">active</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid View -->
+  <div *ngIf="viewMode() === 'grid'" class="grid grid-cols-3 gap-6">
+    <div 
+      *ngFor="let emp of filteredEmployees()" 
+      class="bg-white rounded-xl border border-[#eceef0] overflow-hidden hover:shadow-lg transition-shadow"
+    >
+      <!-- Department color bar -->
+      <div [style.background]="'linear-gradient(135deg, ' + getDeptColor(emp.departmentId) + ', rgba(' + getDeptColor(emp.departmentId) + ', 0.1))'" class="h-1"></div>
+
+      <div class="p-6 space-y-4">
+        <!-- Avatar & basic info -->
+        <div class="flex gap-4">
+          <div 
+            [style.background]="'linear-gradient(135deg, ' + getDeptColor(emp.departmentId) + ', #041627)'"
+            class="w-16 h-16 rounded-full flex items-center justify-center text-white text-lg font-bold flex-shrink-0"
+          >
+            {{ emp.firstName.charAt(0) }}{{ emp.lastName.charAt(0) }}
+          </div>
+          <div class="flex-1">
+            <h3 class="font-bold text-[#041627]">{{ emp.firstName }} {{ emp.lastName }}</h3>
+            <p class="text-sm text-[#8192a7]">{{ emp.title }}</p>
+            <div class="flex gap-2 mt-2">
+              <span [ngClass]="getRoleBadgeClass(emp.roleLevel)" class="text-xs px-2 py-1 rounded">
+                {{ emp.roleLevel | uppercase }}
+              </span>
+              <span class="text-xs px-2 py-1 rounded" [style.background]="getDeptColor(emp.departmentId) + '20'" [style.color]="getDeptColor(emp.departmentId)">
+                {{ getDeptName(emp.departmentId) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact info -->
+        <div class="space-y-2 text-sm">
+          <div class="flex items-center gap-2 text-[#515f74]">
+            <span class="material-symbols-outlined text-base">mail</span>
+            <a [href]="'mailto:' + emp.email" class="text-[#6cd3f7] hover:underline">{{ emp.email }}</a>
+          </div>
+          <div class="flex items-center gap-2 text-[#515f74]">
+            <span class="material-symbols-outlined text-base">phone</span>
+            {{ emp.phone }}
+          </div>
+        </div>
+
+        <!-- Skills preview -->
+        <div *ngIf="emp.skills && emp.skills.length" class="space-y-2">
+          <p class="label-xs">Skills</p>
+          <div class="flex flex-wrap gap-1">
+            <span 
+              *ngFor="let skill of emp.skills.slice(0, 3)" 
+              class="bg-[#f2f4f6] text-[#515f74] text-xs px-2 py-1 rounded"
+            >
+              {{ skill }}
+            </span>
+            <span *ngIf="emp.skills.length > 3" class="text-xs text-[#8192a7] self-center">
+              +{{ emp.skills.length - 3 }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-2 pt-4 border-t border-[#eceef0]">
+          <a 
+            [routerLink]="['/kpi', emp.id]"
+            class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#6cd3f7] text-white text-sm rounded-lg hover:bg-[#4ab8e8] transition-colors"
+          >
+            <span class="material-symbols-outlined">bar_chart</span>
+            KPI Report
+          </a>
+          <button 
+            (click)="confirmDelete(emp)"
+            class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#fee] text-[#ba1a1a] text-sm rounded-lg hover:bg-[#fdd] transition-colors"
+          >
+            <span class="material-symbols-outlined">delete</span>
+            Deactivate
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- List View -->
+  <div *ngIf="viewMode() === 'list'" class="bg-white rounded-xl border border-[#eceef0] overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-[#f2f4f6] border-b border-[#eceef0]">
         <tr>
-          <th class="px-8 py-4 text-left">Name</th>
-          <th class="px-8 py-4 text-left">Email</th>
-          <th class="px-8 py-4 text-left">Status</th>
-          <th class="px-8 py-4 text-left">Join Date</th>
-          <th class="px-8 py-4 text-center">Actions</th>
+          <th class="th">Employee</th>
+          <th class="th">Department</th>
+          <th class="th">Role</th>
+          <th class="th">Email</th>
+          <th class="th">Phone</th>
+          <th class="th">Status</th>
+          <th class="th">Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let user of filteredUsers()" class="border-b border-[#eceef0] hover:bg-[#e6e8ea] transition-colors">
-          <td class="px-8 py-4">
+        <tr *ngFor="let emp of filteredEmployees()" class="border-b border-[#eceef0] hover:bg-[#f8f9fa] transition-colors">
+          <td class="td">
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#041627] to-[#1a2b3c] flex items-center justify-center text-white text-xs font-bold font-['Manrope']">
-                {{ user.firstName[0] }}{{ user.lastName[0] }}
+              <div 
+                [style.background]="'linear-gradient(135deg, ' + getDeptColor(emp.departmentId) + ', #041627)'"
+                class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0"
+              >
+                {{ emp.firstName.charAt(0) }}{{ emp.lastName.charAt(0) }}
               </div>
               <div>
-                <p class="text-sm font-medium text-[#041627]">{{ user.firstName }} {{ user.lastName }}</p>
-                <p class="text-xs text-[#8192a7]">ID: {{ user.id.substring(0, 8) }}</p>
+                <p class="font-medium text-[#041627]">{{ emp.firstName }} {{ emp.lastName }}</p>
+                <p class="text-xs text-[#8192a7]">{{ emp.title }}</p>
               </div>
             </div>
           </td>
-          <td class="px-8 py-4 text-sm text-[#515f74]">{{ user.email }}</td>
-          <td class="px-8 py-4">
-            <app-badge
-              [label]="user.isActive ? 'Active' : 'Inactive'"
-              [variant]="getStatusVariant(user.isActive)"
+          <td class="td">
+            <span class="px-2 py-1 rounded text-xs" [style.background]="getDeptColor(emp.departmentId) + '20'" [style.color]="getDeptColor(emp.departmentId)">
+              {{ getDeptName(emp.departmentId) }}
+            </span>
+          </td>
+          <td class="td">
+            <span [ngClass]="getRoleBadgeClass(emp.roleLevel)" class="text-xs px-2 py-1 rounded inline-block">
+              {{ emp.roleLevel | uppercase }}
+            </span>
+          </td>
+          <td class="td">
+            <a [href]="'mailto:' + emp.email" class="text-[#6cd3f7] hover:underline">{{ emp.email }}</a>
+          </td>
+          <td class="td">{{ emp.phone }}</td>
+          <td class="td">
+            <app-badge 
+              [label]="emp.isActive ? 'Active' : 'Inactive'"
+              [variant]="emp.isActive ? 'active' : 'inactive'"
             ></app-badge>
           </td>
-          <td class="px-8 py-4 text-sm text-[#515f74]">{{ user.createdAt | date: 'short' }}</td>
-          <td class="px-8 py-4">
-            <div class="flex justify-center gap-3">
-              <a
-                [routerLink]="['/users', user.id]"
-                class="text-[#6cd3f7] hover:text-[#041627] hover:bg-[#e0e3e5] px-2 py-1 rounded transition-colors"
+          <td class="td">
+            <div class="flex gap-2">
+              <a 
+                [routerLink]="['/kpi', emp.id]"
+                class="inline-flex items-center gap-1 px-3 py-1 bg-[#6cd3f7] text-white text-xs rounded hover:bg-[#4ab8e8] transition-colors"
               >
-                <span class="material-symbols-outlined text-sm">edit</span>
+                <span class="material-symbols-outlined text-sm">bar_chart</span>
+                KPI
               </a>
-              <button
-                (click)="toggleActive(user)"
-                class="text-[#6cd3f7] hover:text-[#041627] hover:bg-[#e0e3e5] px-2 py-1 rounded transition-colors"
-              >
-                <span class="material-symbols-outlined text-sm">
-                  {{ user.isActive ? 'block' : 'check_circle' }}
-                </span>
-              </button>
-              <button
-                (click)="onDeleteClick(user)"
-                class="text-[#ba1a1a] hover:text-white hover:bg-[#ba1a1a] px-2 py-1 rounded transition-colors"
+              <button 
+                (click)="confirmDelete(emp)"
+                class="inline-flex items-center gap-1 px-3 py-1 bg-[#fee] text-[#ba1a1a] text-xs rounded hover:bg-[#fdd] transition-colors"
               >
                 <span class="material-symbols-outlined text-sm">delete</span>
+                Delete
               </button>
             </div>
           </td>
         </tr>
       </tbody>
     </table>
-
-    <div *ngIf="!isLoading() && filteredUsers().length === 0" class="p-8 text-center text-[#515f74]">
-      No users found matching your filters
-    </div>
   </div>
 
-  <!-- Delete Confirmation Dialog -->
+  <!-- Empty state -->
+  <div *ngIf="filteredEmployees().length === 0" class="p-8 text-center bg-white rounded-xl border border-[#eceef0]">
+    <span class="material-symbols-outlined text-5xl text-[#d0d5dd] mb-4">people</span>
+    <h3 class="text-lg font-medium text-[#515f74] mb-2">No employees found</h3>
+    <p class="text-[#8192a7]">Try adjusting your filters or search term</p>
+  </div>
+
+  <!-- Delete confirmation dialog -->
   <app-confirm-dialog
-    [isOpen]="showDeleteConfirm()"
-    title="Delete User"
-    [message]="'Are you sure you want to delete ' + (userToDelete?.firstName || '') + ' ' + (userToDelete?.lastName || '') + '? This action cannot be undone.'"
-    confirmLabel="Delete"
-    (confirmed)="confirmDelete()"
-    (cancelled)="showDeleteConfirm.set(false)"
+    [isOpen]="showDelete()"
+    [title]="'Deactivate Employee'"
+    [message]="'Are you sure you want to deactivate ' + (toDelete?.firstName || '') + ' ' + (toDelete?.lastName || '') + '? This action cannot be undone.'"
+    (confirmed)="doDelete()"
+    (cancelled)="showDelete.set(false)"
   ></app-confirm-dialog>
 </div>

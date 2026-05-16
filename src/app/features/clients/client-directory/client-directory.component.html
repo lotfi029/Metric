@@ -1,0 +1,195 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-['Manrope'] font-black text-[#041627]">Client Registry</h1>
+      <p class="text-[#515f74]">{{ allClients().length }} clients · {{ vipCount }} VIP</p>
+    </div>
+    <button class="btn-primary px-6 py-2 flex items-center gap-2 text-sm">
+      <span class="material-symbols-outlined text-sm">person_add</span>
+      Add Client
+    </button>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="grid grid-cols-4 gap-5">
+    <div class="bg-white rounded-xl p-5 border border-[#eceef0] border-l-4 border-l-[#6cd3f7]">
+      <p class="text-[#8192a7] text-[10px] uppercase tracking-widest mb-1">Total Clients</p>
+      <p class="text-3xl font-['Manrope'] font-black text-[#041627]">{{ allClients().length }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-5 border border-[#eceef0] border-l-4 border-l-[#fbbc04]">
+      <p class="text-[#8192a7] text-[10px] uppercase tracking-widest mb-1">VIP Accounts</p>
+      <p class="text-3xl font-['Manrope'] font-black text-[#041627]">{{ vipCount }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-5 border border-[#eceef0] border-l-4 border-l-[#34a853]">
+      <p class="text-[#8192a7] text-[10px] uppercase tracking-widest mb-1">Total Lifetime Value</p>
+      <p class="text-3xl font-['Manrope'] font-black text-[#041627]">
+        {{ totalSpent | currency:'AED':'symbol-narrow':'1.0-0' }}
+      </p>
+    </div>
+    <div class="bg-white rounded-xl p-5 border border-[#eceef0] border-l-4 border-l-[#8192a7]">
+      <p class="text-[#8192a7] text-[10px] uppercase tracking-widest mb-1">Prospects</p>
+      <p class="text-3xl font-['Manrope'] font-black text-[#041627]">
+        {{ allClients().filter(c => c.status === 'Prospect').length }}
+      </p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-12 gap-6">
+    <!-- Left: list + filters -->
+    <div class="col-span-5 space-y-4">
+      <!-- Filters -->
+      <div class="bg-white rounded-xl p-4 border border-[#eceef0] space-y-3">
+        <input type="text" [(ngModel)]="searchQuery"
+               placeholder="Search name, email, city..."
+               (ngModelChange)="searchQuery.set($event)"
+               class="input-base w-full text-[#041627]" />
+        <div class="grid grid-cols-2 gap-2">
+          <select [(ngModel)]="statusFilter"
+                  (ngModelChange)="statusFilter.set($event)"
+                  class="input-base text-[#041627] text-sm">
+            <option value="">All Status</option>
+            <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+          </select>
+          <select [(ngModel)]="typeFilter"
+                  (ngModelChange)="typeFilter.set($event)"
+                  class="input-base text-[#041627] text-sm">
+            <option value="">All Types</option>
+            <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Client Cards -->
+      <div class="space-y-2 max-h-[520px] overflow-y-auto">
+        <div *ngFor="let client of filteredClients()"
+             (click)="selectClient(client)"
+             class="bg-white rounded-xl p-4 border cursor-pointer transition-all"
+             [class.border-[#6cd3f7]]="selectedClient()?.id === client.id"
+             [class.border-l-4]="selectedClient()?.id === client.id"
+             [class.shadow-md]="selectedClient()?.id === client.id"
+             [class.border-[#eceef0]]="selectedClient()?.id !== client.id">
+
+          <div class="flex items-start justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#041627] to-[#1a2b3c]
+                          flex items-center justify-center text-white font-['Manrope'] font-bold text-sm flex-shrink-0">
+                {{ client.name.split(' ').map(w => w[0]).slice(0,2).join('') }}
+              </div>
+              <div>
+                <p class="font-bold text-sm text-[#041627] font-['Manrope']">{{ client.name }}</p>
+                <p class="text-[#8192a7] text-xs">{{ client.city }} · {{ client.type }}</p>
+              </div>
+            </div>
+            <app-badge [label]="client.status" [variant]="getStatusVariant(client.status)"></app-badge>
+          </div>
+
+          <div class="flex items-center justify-between mt-3 pt-3 border-t border-[#f2f4f6]">
+            <span class="text-xs text-[#8192a7]">{{ client.totalProjects }} project(s)</span>
+            <span class="text-xs font-bold text-[#041627] font-['Manrope']">
+              {{ client.totalSpent | currency:'AED':'symbol-narrow':'1.0-0' }}
+            </span>
+          </div>
+        </div>
+
+        <div *ngIf="filteredClients().length === 0"
+             class="bg-[#f2f4f6] rounded-xl p-8 text-center text-[#8192a7]">
+          No clients match your filters
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: client detail -->
+    <div class="col-span-7" *ngIf="selectedClient() as c">
+      <div class="bg-white rounded-xl p-8 border border-[#eceef0] space-y-6">
+        <!-- Client Header -->
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-[#041627] to-[#1a2b3c]
+                        flex items-center justify-center text-white font-['Manrope'] font-black text-xl">
+              {{ c.name.split(' ').map(w => w[0]).slice(0,2).join('') }}
+            </div>
+            <div>
+              <h2 class="text-xl font-['Manrope'] font-black text-[#041627]">{{ c.name }}</h2>
+              <div class="flex items-center gap-2 mt-1">
+                <app-badge [label]="c.status" [variant]="getStatusVariant(c.status)"></app-badge>
+                <span class="text-xs text-[#8192a7]">{{ c.type }}</span>
+                <span class="text-xs px-2 py-0.5 rounded-full text-white text-[10px] font-bold"
+                      [style.background-color]="getBudgetColor(c.budgetRange)">
+                  {{ c.budgetRange }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info Grid -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-3">
+            <div>
+              <p class="text-[9px] uppercase tracking-widest text-[#8192a7] font-bold mb-0.5">Email</p>
+              <p class="text-sm text-[#041627]">{{ c.email }}</p>
+            </div>
+            <div>
+              <p class="text-[9px] uppercase tracking-widest text-[#8192a7] font-bold mb-0.5">Phone</p>
+              <p class="text-sm text-[#041627]">{{ c.phone }}</p>
+            </div>
+            <div>
+              <p class="text-[9px] uppercase tracking-widest text-[#8192a7] font-bold mb-0.5">Location</p>
+              <p class="text-sm text-[#041627]">{{ c.address }}, {{ c.city }}</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div>
+              <p class="text-[9px] uppercase tracking-widest text-[#8192a7] font-bold mb-0.5">Preferred Style</p>
+              <p class="text-sm text-[#041627]">{{ c.preferredStyle }}</p>
+            </div>
+            <div>
+              <p class="text-[9px] uppercase tracking-widest text-[#8192a7] font-bold mb-0.5">Nationality</p>
+              <p class="text-sm text-[#041627]">{{ c.nationality }}</p>
+            </div>
+            <div>
+              <p class="text-[9px] uppercase tracking-widest text-[#8192a7] font-bold mb-0.5">Client Since</p>
+              <p class="text-sm text-[#041627]">{{ c.joinDate | date:'MMM yyyy' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Financials -->
+        <div class="grid grid-cols-3 gap-3 pt-4 border-t border-[#eceef0]">
+          <div class="bg-[#f2f4f6] rounded-lg p-4 text-center">
+            <p class="text-2xl font-['Manrope'] font-black text-[#041627]">{{ c.totalProjects }}</p>
+            <p class="text-[10px] text-[#8192a7] uppercase tracking-widest">Projects</p>
+          </div>
+          <div class="bg-[#041627] rounded-lg p-4 text-center">
+            <p class="text-2xl font-['Manrope'] font-black text-[#6cd3f7]">
+              {{ c.totalSpent | currency:'AED':'symbol-narrow':'1.0-0' }}
+            </p>
+            <p class="text-[10px] text-[#8192a7] uppercase tracking-widest">Lifetime Spend</p>
+          </div>
+          <div class="bg-[#f2f4f6] rounded-lg p-4 text-center">
+            <p class="text-sm font-['Manrope'] font-bold text-[#041627]">{{ c.budgetRange }}</p>
+            <p class="text-[10px] text-[#8192a7] uppercase tracking-widest">Budget Range</p>
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div>
+          <p class="text-[9px] uppercase tracking-widest text-[#8192a7] font-bold mb-2">Tags</p>
+          <div class="flex flex-wrap gap-2">
+            <span *ngFor="let tag of c.tags"
+                  class="text-xs px-2 py-0.5 rounded-full bg-[#e0e3e5] text-[#515f74]">
+              {{ tag }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="bg-[#f2f4f6] rounded-lg p-4">
+          <p class="text-[9px] uppercase tracking-widest text-[#8192a7] font-bold mb-2">Notes</p>
+          <p class="text-sm text-[#515f74]">{{ c.notes || 'No notes recorded.' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,124 +1,66 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { UserService } from '@core/services/user.service';
-import { DetailedUserResponse } from '@core/models/user.model';
-import { BadgeComponent } from '@shared/components/badge/badge.component';
-
-interface KPIData {
-  attendanceRate: number;
-  tasksCompleted: number;
-  tasksTotal: number;
-  performanceRating: number;
-  velocityData: { month: string; value: number }[];
-  objectives: { name: string; progress: number }[];
-  skills: { name: string; value: number }[];
-  recentContributions: any[];
-}
+import { MOCK_KPIs, MOCK_EMPLOYEES, EmployeeKpi, Employee } from '@core/mock/index';
 
 @Component({
   selector: 'app-kpi-report',
   standalone: true,
-  imports: [CommonModule, BadgeComponent],
+  imports: [CommonModule],
   templateUrl: './kpi-report.component.html',
   styleUrls: ['./kpi-report.component.css']
 })
 export class KpiReportComponent implements OnInit {
-  user = signal<DetailedUserResponse | null>(null);
-  isLoading = signal(true);
-  periodFilter = signal<'Monthly' | 'Quarterly' | 'Annual'>('Monthly');
-  periods = ['Monthly', 'Quarterly', 'Annual'] as const;
+  kpi    = signal<EmployeeKpi | null>(null);
+  emp    = signal<Employee | null>(null);
+  period = signal<'monthly' | 'quarterly' | 'annual'>('monthly');
+  periods: ('monthly' | 'quarterly' | 'annual')[] = ['monthly', 'quarterly', 'annual'];
 
-  kpiData: KPIData = {
-    attendanceRate: 94,
-    tasksCompleted: 28,
-    tasksTotal: 32,
-    performanceRating: 4.5,
-    velocityData: [
-      { month: 'Jan', value: 85 },
-      { month: 'Feb', value: 88 },
-      { month: 'Mar', value: 92 },
-      { month: 'Apr', value: 89 },
-      { month: 'May', value: 95 },
-      { month: 'Jun', value: 94 }
-    ],
-    objectives: [
-      { name: 'Launch new product line', progress: 85 },
-      { name: 'Improve client satisfaction', progress: 92 },
-      { name: 'Team mentorship', progress: 78 }
-    ],
-    skills: [
-      { name: 'Design', value: 92 },
-      { name: 'Leadership', value: 85 },
-      { name: 'Communication', value: 88 },
-      { name: 'Project Management', value: 80 }
-    ],
-    recentContributions: [
-      { date: '2025-12-10', action: 'Completed Project X', category: 'Design', impact: 9, status: 'completed' },
-      { date: '2025-12-08', action: 'Led team meeting', category: 'Leadership', impact: 8, status: 'completed' },
-      { date: '2025-12-05', action: 'Client presentation', category: 'Sales', impact: 10, status: 'completed' },
-      { date: '2025-12-03', action: 'Mentored junior designer', category: 'Training', impact: 7, status: 'completed' },
-      { date: '2025-11-30', action: 'Design system update', category: 'Design', impact: 9, status: 'completed' }
-    ]
-  };
-
-  constructor(
-    private userService: UserService,
-    private route: ActivatedRoute
-  ) {}
+  constructor(private route: ActivatedRoute) {}
 
   ngOnInit() {
     this.route.params.subscribe(params => {
-      const userId = params['id'];
-      this.loadUser(userId);
+      const id = params['id'];
+      const found = MOCK_KPIs.find(k => k.employeeId === id) || MOCK_KPIs[0];
+      const employee = MOCK_EMPLOYEES.find(e => e.id === found.employeeId) || MOCK_EMPLOYEES[0];
+      this.kpi.set(found);
+      this.emp.set(employee);
     });
   }
 
-  setPeriod(period: string) {
-    if (period === 'Monthly' || period === 'Quarterly' || period === 'Annual') {
-      this.periodFilter.set(period);
-    }
+  get taskRate() { return this.kpi() ? ((this.kpi()!.tasksCompleted / this.kpi()!.tasksTotal) * 100).toFixed(0) : 0; }
+
+  get stars(): string[] {
+    const r = this.kpi()?.performanceRating || 0;
+    return Array(5).fill('').map((_, i) =>
+      i < Math.floor(r) ? 'star' : (i < r ? 'star_half' : 'star_outline')
+    );
   }
 
-  loadUser(userId: string) {
-    this.userService.getUserById(userId).subscribe({
-      next: (user) => {
-        this.user.set(user);
-        this.isLoading.set(false);
-      },
-      error: (err) => {
-        console.error('Failed to load user:', err);
-        this.isLoading.set(false);
-      }
-    });
-  }
-
-  getMaxVelocity(): number {
-    return Math.max(...this.kpiData.velocityData.map(d => d.value));
-  }
-
-  getBarWidth(value: number): string {
-    return ((value / this.getMaxVelocity()) * 100) + '%';
-  }
-
-  getTaskProgress(): number {
-    return (this.kpiData.tasksCompleted / this.kpiData.tasksTotal) * 100;
-  }
-
-  getRating(): string[] {
-    const full = Math.floor(this.kpiData.performanceRating);
-    const half = this.kpiData.performanceRating % 1 > 0;
-    const empty = 5 - Math.ceil(this.kpiData.performanceRating);
-    return [
-      ...Array(full).fill('star'),
-      ...(half ? ['star_half'] : []),
-      ...Array(empty).fill('star_outline')
-    ];
-  }
-
-  getImpactColor(impact: number): string {
-    if (impact >= 9) return 'bg-[#6cd3f7]';
-    if (impact >= 7) return 'bg-[#269dbe]';
+  getImpactColor(n: number): string {
+    if (n >= 9) return 'bg-[#6cd3f7]';
+    if (n >= 7) return 'bg-[#0073e6]';
     return 'bg-[#8192a7]';
   }
+
+  getObjectiveColor(s: string): string {
+    const m: Record<string, string> = {
+      'On-Track': '#34a853', 'At-Risk': '#fbbc04', 'Behind': '#ba1a1a'
+    };
+    return m[s] || '#8192a7';
+  }
+
+  setPeriod(p: 'monthly' | 'quarterly' | 'annual') {
+    this.period.set(p);
+  }
+
+  getAttendanceColor(s: string): string {
+    const m: Record<string, string> = {
+      'Present': '#34a853', 'Late': '#fbbc04',
+      'Absent': '#ba1a1a', 'Leave': '#8192a7', 'Holiday': '#6cd3f7'
+    };
+    return m[s] || '#eceef0';
+  }
+
+  maxVelocity = computed(() => Math.max(...(this.kpi()?.velocityData.map(d => d.value) || [100])));
 }

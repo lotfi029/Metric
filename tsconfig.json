@@ -18,6 +18,8 @@
     "paths": {
       "@app/*": ["app/*"],
       "@core/*": ["app/core/*"],
+      "@core/mock": ["app/core/mock/index.ts"],
+      "@core/mock/*": ["app/core/mock/*"],
       "@features/*": ["app/features/*"],
       "@shared/*": ["app/shared/*"]
     }

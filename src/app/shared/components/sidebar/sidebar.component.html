@@ -1,99 +1,110 @@
-<nav class="fixed left-0 top-0 h-full w-64 bg-[#041627] text-white flex flex-col p-6 font-['Manrope']">
+<nav class="fixed left-0 top-0 h-full w-64 bg-[#041627] flex flex-col z-50 shadow-2xl">
   <!-- Brand -->
-  <div class="mb-8">
-    <div class="text-2xl font-black">Metric</div>
-    <div class="text-[#8192a7] text-sm">Operations Suite</div>
+  <div class="px-6 py-6 border-b border-[#1a2b3c]">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-[#6cd3f7] flex items-center justify-center">
+        <span class="text-[#041627] font-['Manrope'] font-black text-sm">M</span>
+      </div>
+      <div>
+        <div class="text-white font-['Manrope'] font-black text-lg leading-none">Metric</div>
+        <div class="text-[#8192a7] text-[10px] uppercase tracking-widest">Operations Suite</div>
+      </div>
+    </div>
   </div>
 
-  <!-- Nav Links -->
-  <div class="flex-1 space-y-2">
-    <a
-      routerLink="/dashboard"
-      routerLinkActive="sidebar-active"
-      [routerLinkActiveOptions]="{ exact: false }"
-      class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#8192a7] hover:bg-[#1a2b3c] transition-colors"
-    >
+  <!-- Primary Nav -->
+  <div class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+    <!-- Section: Overview -->
+    <p class="text-[#8192a7] text-[9px] uppercase tracking-widest font-bold px-3 pb-2 pt-1">Overview</p>
+
+    <a routerLink="/dashboard" routerLinkActive="nav-active"
+       [routerLinkActiveOptions]="{exact:true}"
+       class="nav-link">
       <span class="material-symbols-outlined text-[#6cd3f7]">dashboard</span>
       <span>Dashboard</span>
     </a>
 
-    <a
-      routerLink="/projects"
-      routerLinkActive="sidebar-active"
-      [routerLinkActiveOptions]="{ exact: false }"
-      class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#8192a7] hover:bg-[#1a2b3c] transition-colors"
-    >
+    <!-- Section: Operations -->
+    <p class="text-[#8192a7] text-[9px] uppercase tracking-widest font-bold px-3 pb-2 pt-4">Operations</p>
+
+    <a routerLink="/projects" routerLinkActive="nav-active"
+       [routerLinkActiveOptions]="{exact:false}"
+       class="nav-link">
       <span class="material-symbols-outlined text-[#6cd3f7]">folder_open</span>
       <span>Projects</span>
+      <span class="ml-auto text-[10px] bg-[#6cd3f7] text-[#041627] font-bold px-2 rounded-full">6</span>
     </a>
 
-    <a
-      routerLink="/users"
-      routerLinkActive="sidebar-active"
-      [routerLinkActiveOptions]="{ exact: true }"
-      class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#8192a7] hover:bg-[#1a2b3c] transition-colors"
-    >
+    <a routerLink="/clients" routerLinkActive="nav-active"
+       [routerLinkActiveOptions]="{exact:false}"
+       class="nav-link">
+      <span class="material-symbols-outlined text-[#6cd3f7]">handshake</span>
+      <span>Clients</span>
+    </a>
+
+    <!-- Section: People -->
+    <p class="text-[#8192a7] text-[9px] uppercase tracking-widest font-bold px-3 pb-2 pt-4">People</p>
+
+    <a routerLink="/users" routerLinkActive="nav-active"
+       [routerLinkActiveOptions]="{exact:true}"
+       class="nav-link">
       <span class="material-symbols-outlined text-[#6cd3f7]">group</span>
-      <span>User Directory</span>
+      <span>Employees</span>
     </a>
 
-    <a
-      routerLink="/roles"
-      routerLinkActive="sidebar-active"
-      [routerLinkActiveOptions]="{ exact: true }"
-      class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#8192a7] hover:bg-[#1a2b3c] transition-colors"
-    >
-      <span class="material-symbols-outlined text-[#6cd3f7]">shield_admin</span>
-      <span>Role Management</span>
-    </a>
-
-    <a
-      routerLink="/departments"
-      routerLinkActive="sidebar-active"
-      [routerLinkActiveOptions]="{ exact: true }"
-      class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#8192a7] hover:bg-[#1a2b3c] transition-colors"
-    >
+    <a routerLink="/departments" routerLinkActive="nav-active"
+       [routerLinkActiveOptions]="{exact:true}"
+       class="nav-link">
       <span class="material-symbols-outlined text-[#6cd3f7]">apartment</span>
       <span>Departments</span>
     </a>
 
-    <a
-      routerLink="/audit"
-      routerLinkActive="sidebar-active"
-      [routerLinkActiveOptions]="{ exact: true }"
-      class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#8192a7] hover:bg-[#1a2b3c] transition-colors"
-    >
+    <a routerLink="/roles" routerLinkActive="nav-active"
+       [routerLinkActiveOptions]="{exact:true}"
+       class="nav-link">
+      <span class="material-symbols-outlined text-[#6cd3f7]">shield_admin</span>
+      <span>Roles & Permissions</span>
+    </a>
+
+    <!-- Section: Finance -->
+    <p class="text-[#8192a7] text-[9px] uppercase tracking-widest font-bold px-3 pb-2 pt-4">Finance</p>
+
+    <a routerLink="/finance" routerLinkActive="nav-active"
+       [routerLinkActiveOptions]="{exact:false}"
+       class="nav-link">
+      <span class="material-symbols-outlined text-[#6cd3f7]">payments</span>
+      <span>Finance</span>
+    </a>
+
+    <!-- Section: System -->
+    <p class="text-[#8192a7] text-[9px] uppercase tracking-widest font-bold px-3 pb-2 pt-4">System</p>
+
+    <a routerLink="/audit" routerLinkActive="nav-active"
+       [routerLinkActiveOptions]="{exact:true}"
+       class="nav-link">
       <span class="material-symbols-outlined text-[#6cd3f7]">history</span>
       <span>Audit Trail</span>
     </a>
 
-    <a
-      routerLink="/profile"
-      routerLinkActive="sidebar-active"
-      [routerLinkActiveOptions]="{ exact: true }"
-      class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#8192a7] hover:bg-[#1a2b3c] transition-colors"
-    >
+    <a routerLink="/profile" routerLinkActive="nav-active"
+       [routerLinkActiveOptions]="{exact:true}"
+       class="nav-link">
       <span class="material-symbols-outlined text-[#6cd3f7]">person</span>
       <span>My Profile</span>
     </a>
   </div>
 
-  <!-- Bottom Actions -->
-  <div class="space-y-3 border-t border-[#1a2b3c] pt-4">
-    <a
-      routerLink="/users/add"
-      class="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-br from-[#041627] to-[#1a2b3c] border border-[#6cd3f7]/30 text-white hover:opacity-90 transition-opacity font-medium"
-    >
-      <span class="material-symbols-outlined">person_add</span>
-      <span class="text-sm">Add New User</span>
+  <!-- Bottom -->
+  <div class="px-3 py-4 border-t border-[#1a2b3c] space-y-2">
+    <a routerLink="/users/add"
+       class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#6cd3f7]/10 border border-[#6cd3f7]/30 text-[#6cd3f7] hover:bg-[#6cd3f7]/20 transition-colors">
+      <span class="material-symbols-outlined text-sm">person_add</span>
+      <span class="text-sm font-medium font-['Manrope']">Add Employee</span>
     </a>
-
-    <button
-      (click)="logout()"
-      class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[#ba1a1a]/10 text-[#ba1a1a] hover:bg-[#ba1a1a]/20 transition-colors font-medium"
-    >
-      <span class="material-symbols-outlined">logout</span>
-      <span class="text-sm">Sign Out</span>
+    <button (click)="logout()"
+       class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[#ba1a1a] hover:bg-[#ba1a1a]/10 transition-colors">
+      <span class="material-symbols-outlined text-sm">logout</span>
+      <span class="text-sm font-medium">Sign Out</span>
     </button>
   </div>
 </nav>

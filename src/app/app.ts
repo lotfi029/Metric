@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ToastService } from './core/services/toast.service';
+import { AuthStore } from './core/auth/auth.store';
 
 @Component({
   selector: 'app-root',
@@ -10,8 +11,16 @@ import { ToastService } from './core/services/toast.service';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
+export class App implements OnInit {
   toastService = inject(ToastService);
+  private readonly authStore = inject(AuthStore);
+
+  ngOnInit(): void {
+    this.authStore.initFromStorage();
+    if (this.authStore.isAuthenticated()) {
+      this.authStore.startPermissionPolling();
+    }
+  }
 
   getToastClass(type: string): string {
     const baseClass = 'px-6 py-3 rounded-lg text-white font-medium shadow-lg animate-in fade-in slide-in-from-top-4 duration-300';

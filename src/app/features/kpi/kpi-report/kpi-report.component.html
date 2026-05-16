@@ -1,174 +1,171 @@
-<div class="space-y-8" *ngIf="!isLoading(); else loading">
+<div class="space-y-8" *ngIf="kpi() && emp()">
   <!-- Header -->
-  <div class="flex items-center justify-between mb-8">
-    <div>
-      <h1 class="text-3xl font-['Manrope'] font-black text-[#041627]" *ngIf="user()">
-        {{ user()?.firstName }} {{ user()?.lastName }}
-      </h1>
-      <div class="flex items-center gap-4 mt-2">
-        <p class="text-[#515f74]">CEO & Founder</p>
-        <app-badge label="Active" variant="active"></app-badge>
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-5">
+      <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-[#041627] to-[#1a2b3c]
+                  flex items-center justify-center text-white font-['Manrope'] font-black text-xl">
+        {{ emp()!.avatar }}
+      </div>
+      <div>
+        <h1 class="text-3xl font-['Manrope'] font-black text-[#041627]">
+          {{ emp()!.firstName }} {{ emp()!.lastName }}
+        </h1>
+        <p class="text-[#515f74]">{{ emp()!.title }} · {{ emp()!.department }}</p>
       </div>
     </div>
-    <div class="flex gap-4">
-      <button
-        *ngFor="let period of periods"
-        (click)="setPeriod(period)"
-        [class.bg-[#041627]]="periodFilter() === period"
-        [class.text-white]="periodFilter() === period"
-        [class.bg-[#f2f4f6]]="periodFilter() !== period"
-        class="px-6 py-2 rounded-lg font-medium transition-colors"
-      >
-        {{ period }}
+    <div class="flex gap-2">
+      <button *ngFor="let p of periods"
+              (click)="setPeriod(p)"
+              class="px-5 py-2 rounded-lg text-sm font-medium transition-colors"
+              [class.bg-[#041627]]="period() === p"
+              [class.text-white]="period() === p"
+              [class.bg-[#f2f4f6]]="period() !== p"
+              [class.text-[#515f74]]="period() !== p">
+        {{ p | titlecase }}
       </button>
     </div>
   </div>
 
-  <div class="grid grid-cols-12 gap-8">
-    <!-- Left Column (col-span-4) -->
-    <div class="col-span-4 space-y-6">
-      <!-- Attendance Rate -->
-      <div class="bg-white rounded-xl p-6 card-base">
-        <p class="text-[#515f74] text-sm font-medium mb-2">Attendance Rate</p>
-        <p class="text-4xl font-['Manrope'] font-black text-[#041627] mb-4">{{ kpiData.attendanceRate }}%</p>
-        <div class="flex items-center gap-2 text-[#6cd3f7] mb-4">
-          <span class="material-symbols-outlined text-sm">trending_up</span>
-          <span class="text-xs">+3% from last month</span>
-        </div>
-        <div class="w-full bg-[#e0e3e5] rounded-full h-2">
-          <div class="bg-[#6cd3f7] h-2 rounded-full" [style.width.%]="kpiData.attendanceRate"></div>
-        </div>
-      </div>
-
-      <!-- Tasks Completed -->
-      <div class="bg-white rounded-xl p-6 card-base">
-        <p class="text-[#515f74] text-sm font-medium mb-2">Tasks Completed</p>
-        <p class="text-4xl font-['Manrope'] font-black text-[#041627] mb-4">
-          {{ kpiData.tasksCompleted }}<span class="text-lg text-[#515f74]">/{{ kpiData.tasksTotal }}</span>
-        </p>
-        <div class="flex gap-1">
-          <div
-            *ngFor="let i of [1, 2, 3, 4, 5, 6, 7, 8]"
-            [class.bg-[#6cd3f7]]="i <= (getTaskProgress() / 100 * 8)"
-            [class.bg-[#e0e3e5]]="i > (getTaskProgress() / 100 * 8)"
-            class="flex-1 h-2 rounded transition-colors"
-          ></div>
-        </div>
-      </div>
-
-      <!-- Performance Rating -->
-      <div class="bg-[#041627] rounded-xl p-6 card-base text-white">
-        <p class="text-[#8192a7] text-sm font-medium mb-2">Performance Rating</p>
-        <p class="text-4xl font-['Manrope'] font-black mb-4">{{ kpiData.performanceRating }}/5</p>
-        <div class="flex gap-2 mb-6">
-          <span
-            *ngFor="let star of getRating()"
-            class="material-symbols-outlined text-[#6cd3f7]"
-          >
-            {{ star }}
-          </span>
-        </div>
-        <button class="text-[#6cd3f7] font-medium text-sm hover:underline">
-          View Reviews
-        </button>
+  <!-- Top KPI Cards -->
+  <div class="grid grid-cols-12 gap-5">
+    <!-- Attendance -->
+    <div class="col-span-3 bg-white rounded-xl p-6 border border-[#eceef0]">
+      <p class="text-[9px] uppercase tracking-widest text-[#8192a7] mb-2">Attendance Rate</p>
+      <p class="text-5xl font-['Manrope'] font-black text-[#041627]">{{ kpi()!.attendanceRate }}%</p>
+      <div class="mt-3 h-2 bg-[#e0e3e5] rounded-full">
+        <div class="h-2 bg-[#6cd3f7] rounded-full" [style.width.%]="kpi()!.attendanceRate"></div>
       </div>
     </div>
 
-    <!-- Right Column (col-span-8) -->
-    <div class="col-span-8 space-y-6">
-      <!-- Performance Velocity -->
-      <div class="bg-white rounded-xl p-8 card-base">
-        <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Performance Velocity</h2>
-        
-        <div class="space-y-4">
-          <div *ngFor="let data of kpiData.velocityData" class="space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-sm font-medium text-[#515f74]">{{ data.month }}</span>
-              <span class="text-sm font-bold text-[#041627]">{{ data.value }}%</span>
-            </div>
-            <div class="w-full bg-[#e0e3e5] rounded-full h-2">
-              <div
-                class="bg-gradient-to-r from-[#041627] to-[#6cd3f7] h-2 rounded-full"
-                [style.width.%]="data.value"
-              ></div>
-            </div>
+    <!-- Tasks -->
+    <div class="col-span-3 bg-white rounded-xl p-6 border border-[#eceef0]">
+      <p class="text-[9px] uppercase tracking-widest text-[#8192a7] mb-2">Tasks</p>
+      <p class="text-5xl font-['Manrope'] font-black text-[#041627]">
+        {{ kpi()!.tasksCompleted }}<span class="text-xl text-[#8192a7]">/{{ kpi()!.tasksTotal }}</span>
+      </p>
+      <div class="flex gap-0.5 mt-3">
+        <div *ngFor="let i of [1,2,3,4,5,6,7,8,9,10]"
+             class="flex-1 h-2 rounded-sm"
+             [class.bg-[#6cd3f7]]="i <= +(taskRate)"
+             [class.bg-[#e0e3e5]]="i > +(taskRate)"></div>
+      </div>
+    </div>
+
+    <!-- Performance -->
+    <div class="col-span-3 bg-white rounded-xl p-6 border border-[#eceef0]">
+      <p class="text-[9px] uppercase tracking-widest text-[#8192a7] mb-2">Performance</p>
+      <p class="text-5xl font-['Manrope'] font-black text-[#041627]">{{ kpi()!.performanceRating }}/5</p>
+      <div class="flex gap-1 mt-3">
+        <span *ngFor="let s of stars" class="material-symbols-outlined text-[#6cd3f7] text-lg">{{ s }}</span>
+      </div>
+    </div>
+
+    <!-- Dark Card — Client Score -->
+    <div class="col-span-3 bg-[#041627] rounded-xl p-6">
+      <p class="text-[9px] uppercase tracking-widest text-[#8192a7] mb-2">Client Satisfaction</p>
+      <p class="text-5xl font-['Manrope'] font-black text-white">{{ kpi()!.clientSatisfaction }}<span class="text-xl text-[#8192a7]">/10</span></p>
+      <p class="text-[#6cd3f7] text-xs mt-3 font-medium">
+        {{ kpi()!.projectsWorkedOn }} projects this period
+      </p>
+    </div>
+  </div>
+
+  <!-- Middle: Velocity + Objectives + Skills -->
+  <div class="grid grid-cols-12 gap-6">
+    <!-- Velocity -->
+    <div class="col-span-5 bg-white rounded-xl p-7 border border-[#eceef0]">
+      <h2 class="font-['Manrope'] font-bold text-[#041627] mb-5">Performance Velocity</h2>
+      <div class="space-y-3">
+        <div *ngFor="let d of kpi()!.velocityData">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-[#515f74]">{{ d.month }}</span>
+            <span class="font-bold text-[#041627] font-['Manrope']">{{ d.value }}%</span>
+          </div>
+          <div class="h-2 bg-[#f2f4f6] rounded-full">
+            <div class="h-2 rounded-full bg-gradient-to-r from-[#041627] to-[#6cd3f7]"
+                 [style.width.%]="(d.value / maxVelocity()) * 100"></div>
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="grid grid-cols-2 gap-6">
-        <!-- Strategic Objectives -->
-        <div class="bg-white rounded-xl p-6 card-base">
-          <h3 class="font-['Manrope'] font-bold text-[#041627] mb-4">Strategic Objectives</h3>
-          <div class="space-y-3">
-            <div *ngFor="let obj of kpiData.objectives">
-              <p class="text-sm font-medium text-[#041627] mb-1">{{ obj.name }}</p>
-              <div class="w-full bg-[#e0e3e5] rounded-full h-2">
-                <div
-                  class="bg-[#6cd3f7] h-2 rounded-full"
-                  [style.width.%]="obj.progress"
-                ></div>
-              </div>
-            </div>
+    <!-- Objectives -->
+    <div class="col-span-4 bg-white rounded-xl p-7 border border-[#eceef0]">
+      <h2 class="font-['Manrope'] font-bold text-[#041627] mb-5">Strategic Objectives</h2>
+      <div class="space-y-4">
+        <div *ngFor="let obj of kpi()!.objectives">
+          <div class="flex justify-between items-center mb-1">
+            <p class="text-xs text-[#041627] font-medium flex-1 pr-2">{{ obj.name }}</p>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full text-white flex-shrink-0"
+                  [style.background-color]="getObjectiveColor(obj.status)">
+              {{ obj.status }}
+            </span>
           </div>
+          <div class="h-1.5 bg-[#f2f4f6] rounded-full">
+            <div class="h-1.5 bg-[#6cd3f7] rounded-full"
+                 [style.width.%]="obj.progress"></div>
+          </div>
+          <p class="text-[10px] text-[#8192a7] mt-0.5">{{ obj.progress }}% complete</p>
         </div>
+      </div>
+    </div>
 
-        <!-- Skill Proficiency -->
-        <div class="bg-white rounded-xl p-6 card-base">
-          <h3 class="font-['Manrope'] font-bold text-[#041627] mb-4">Skill Proficiency</h3>
-          <svg class="w-full h-40" viewBox="0 0 100 100">
-            <!-- Donut chart (simplified) -->
-            <circle cx="50" cy="50" r="40" fill="none" stroke="#e0e3e5" stroke-width="8"></circle>
-            <circle cx="50" cy="50" r="40" fill="none" stroke="#6cd3f7" stroke-width="8" stroke-dasharray="250 400" stroke-dashoffset="0"></circle>
-          </svg>
+    <!-- Skills -->
+    <div class="col-span-3 bg-white rounded-xl p-7 border border-[#eceef0]">
+      <h2 class="font-['Manrope'] font-bold text-[#041627] mb-5">Skills</h2>
+      <div class="space-y-3">
+        <div *ngFor="let skill of kpi()!.skills">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-[#515f74]">{{ skill.name }}</span>
+            <span class="font-bold text-[#041627]">{{ skill.level }}</span>
+          </div>
+          <div class="h-1.5 bg-[#f2f4f6] rounded-full">
+            <div class="h-1.5 bg-[#6cd3f7] rounded-full"
+                 [style.width.%]="skill.level"></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Recent Contributions -->
-  <div class="bg-white rounded-xl overflow-hidden card-base">
-    <div class="px-8 py-6 border-b border-[#eceef0]">
-      <h2 class="text-lg font-['Manrope'] font-bold text-[#041627]">Recent Contributions Ledger</h2>
+  <!-- Contributions Table -->
+  <div class="bg-white rounded-xl overflow-hidden border border-[#eceef0]">
+    <div class="px-8 py-5 border-b border-[#eceef0]">
+      <h2 class="font-['Manrope'] font-bold text-[#041627]">Recent Contributions</h2>
     </div>
-    
-    <div class="overflow-x-auto">
-      <table class="w-full">
-        <thead class="bg-[#e0e3e5] text-[10px] uppercase tracking-widest font-bold text-[#44474c]">
-          <tr>
-            <th class="px-8 py-4 text-left">Date</th>
-            <th class="px-8 py-4 text-left">Action Item</th>
-            <th class="px-8 py-4 text-left">Category</th>
-            <th class="px-8 py-4 text-left">Impact Score</th>
-            <th class="px-8 py-4 text-left">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let contrib of kpiData.recentContributions" class="border-b border-[#eceef0] hover:bg-[#e6e8ea]">
-            <td class="px-8 py-4 text-sm text-[#515f74]">{{ contrib.date | date: 'short' }}</td>
-            <td class="px-8 py-4 text-sm font-medium text-[#041627]">{{ contrib.action }}</td>
-            <td class="px-8 py-4 text-sm text-[#515f74]">{{ contrib.category }}</td>
-            <td class="px-8 py-4">
-              <div class="flex items-center gap-2">
-                <div [class]="getImpactColor(contrib.impact) + ' px-2 py-1 rounded text-white text-xs font-bold'">
-                  {{ contrib.impact }}/10
-                </div>
-                <div class="w-24 bg-[#e0e3e5] rounded-full h-2">
-                  <div
-                    [class]="getImpactColor(contrib.impact)"
-                    class="h-2 rounded-full"
-                    [style.width.%]="contrib.impact * 10"
-                  ></div>
-                </div>
+    <table class="w-full">
+      <thead class="bg-[#f2f4f6]">
+        <tr>
+          <th class="px-6 py-3 text-left text-[9px] uppercase tracking-widest text-[#8192a7] font-bold">Date</th>
+          <th class="px-6 py-3 text-left text-[9px] uppercase tracking-widest text-[#8192a7] font-bold">Action</th>
+          <th class="px-6 py-3 text-left text-[9px] uppercase tracking-widest text-[#8192a7] font-bold">Project</th>
+          <th class="px-6 py-3 text-left text-[9px] uppercase tracking-widest text-[#8192a7] font-bold">Category</th>
+          <th class="px-6 py-3 text-left text-[9px] uppercase tracking-widest text-[#8192a7] font-bold">Impact</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of kpi()!.recentContributions"
+            class="border-b border-[#eceef0] hover:bg-[#f2f4f6] transition-colors">
+          <td class="px-6 py-4 text-xs text-[#8192a7]">{{ c.date | date:'dd MMM' }}</td>
+          <td class="px-6 py-4 text-sm text-[#041627]">{{ c.action }}</td>
+          <td class="px-6 py-4 text-xs font-mono text-[#6cd3f7]">{{ c.project }}</td>
+          <td class="px-6 py-4 text-xs text-[#515f74]">{{ c.category }}</td>
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-white px-2 py-0.5 rounded"
+                    [ngClass]="getImpactColor(c.impact)">
+                {{ c.impact }}/10
+              </span>
+              <div class="w-16 h-1.5 bg-[#e0e3e5] rounded-full">
+                <div class="h-1.5 rounded-full"
+                     [ngClass]="getImpactColor(c.impact)"
+                     [style.width.%]="c.impact * 10"></div>
               </div>
-            </td>
-            <td class="px-8 py-4">
-              <app-badge label="Completed" variant="active"></app-badge>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
