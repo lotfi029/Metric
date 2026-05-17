@@ -33,7 +33,10 @@ const NAV_ITEMS: NavItem[] = [
     <aside class="sidebar">
       <div class="brand">
         <span class="brand-mark">D</span>
-        <span class="brand-text">DMS</span>
+        <span class="brand-text">
+          <strong>DMS</strong>
+          <small>Management Console</small>
+        </span>
       </div>
       <nav>
         @for (item of visibleNavItems(); track item.route) {
@@ -46,12 +49,18 @@ const NAV_ITEMS: NavItem[] = [
     </aside>
   `,
   styles: [`
-    .sidebar { width: 240px; min-height: 100vh; background: #0f172a; color: #cbd5e1; padding: 16px 12px; box-sizing: border-box; }
-    .brand { display: flex; align-items: center; gap: 10px; height: 48px; margin-bottom: 18px; color: #fff; font-weight: 800; }
-    .brand-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; background: #38bdf8; color: #082f49; }
-    .nav-item { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 8px; color: inherit; text-decoration: none; font-weight: 600; }
-    .nav-item:hover, .nav-item.active { background: #1e293b; color: #fff; }
-    @media (max-width: 960px) { .sidebar { width: 64px; } .brand-text, .nav-item span { display: none; } .nav-item { justify-content: center; padding: 0; } }
+    .sidebar { position: sticky; top: 0; width: 248px; min-height: 100vh; background: #111827; color: #cbd5e1; padding: 18px 12px; box-sizing: border-box; border-right: 1px solid rgba(255,255,255,.06); }
+    .brand { display: flex; align-items: center; gap: 12px; min-height: 54px; margin-bottom: 20px; color: #fff; }
+    .brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 8px; background: #e0f2fe; color: #075985; font-weight: 900; }
+    .brand-text { display: grid; gap: 1px; line-height: 1.1; }
+    .brand-text small { color: #94a3b8; font-size: 11px; font-weight: 600; }
+    nav { display: grid; gap: 4px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; min-height: 42px; padding: 0 12px; border-radius: 8px; color: #aebacd; text-decoration: none; font-weight: 650; font-size: 14px; }
+    .nav-item mat-icon { color: #8ea0b8; }
+    .nav-item:hover { background: rgba(255,255,255,.06); color: #fff; }
+    .nav-item.active { background: #f8fafc; color: #172033; }
+    .nav-item.active mat-icon { color: #2563eb; }
+    @media (max-width: 960px) { .sidebar { width: 68px; } .brand-text, .nav-item span { display: none; } .nav-item { justify-content: center; padding: 0; } }
     @media (max-width: 720px) { .sidebar { display: none; } }
   `],
 })

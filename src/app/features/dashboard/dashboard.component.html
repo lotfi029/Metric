@@ -28,7 +28,7 @@
       <h2>Departments</h2>
       <div class="mini-grid">
         @for (dept of departments(); track dept.id) {
-          <article>
+          <article class="dept-card">
             <strong>{{ dept.name }}</strong>
             <span>{{ dept.departmentHead?.firstName || 'No Head' }}</span>
           </article>
@@ -42,8 +42,8 @@
       <h2>Recent Employees</h2>
       @for (employee of recentEmployees(); track employee.id) {
         <div class="list-row">
-          <strong>{{ employee.firstName }} {{ employee.lastName }}</strong>
-          <span>{{ employee.jobTitle }}</span>
+          <strong>{{ employee.firstName || 'Unnamed' }} {{ employee.lastName }}</strong>
+          <span>{{ employee.jobTitle || 'No title' }}</span>
           <span>{{ employee.departmentName || 'No department' }}</span>
           <span>{{ employee.isActive ? 'Active' : 'Inactive' }}</span>
         </div>

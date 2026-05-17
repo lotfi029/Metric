@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, tap } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   DenyPermissionRequest,
   EffectivePermissionsResponse,
@@ -14,10 +15,21 @@ import { AuthStore } from '../auth/auth.store';
 export class PermissionService extends ApiService {
   private readonly authStore = inject(AuthStore);
 
-  getAll(): Observable<PermissionResponse[]> { return this.get('/permissions'); }
-  getRolePermissions(roleId: string): Observable<PermissionResponse[]> { return this.get(`/permissions/role/${roleId}`); }
-  getUserEffective(userId: string): Observable<EffectivePermissionsResponse> { return this.get(`/permissions/user/${userId}`); }
-  getMyEffective(): Observable<EffectivePermissionsResponse> { return this.get('/permissions/me'); }
+  getAll(): Observable<PermissionResponse[]> {
+    return this.get<unknown>('/permissions').pipe(map(response => this.unwrapArray(response).map(permission => this.normalizePermission(permission))));
+  }
+
+  getRolePermissions(roleId: string): Observable<PermissionResponse[]> {
+    return this.get<unknown>(`/permissions/role/${roleId}`).pipe(map(response => this.unwrapArray(response).map(permission => this.normalizePermission(permission))));
+  }
+
+  getUserEffective(userId: string): Observable<EffectivePermissionsResponse> {
+    return this.get<unknown>(`/permissions/user/${userId}`).pipe(map(response => this.normalizeEffective(this.unwrap(response))));
+  }
+
+  getMyEffective(): Observable<EffectivePermissionsResponse> {
+    return this.get<unknown>('/auth/me/permissions').pipe(map(response => this.normalizeEffective(this.unwrap(response))));
+  }
   assignToRole(roleId: string, permissionName: string): Observable<unknown> { return this.post(`/permissions/${roleId}`, { permissionName }); }
   removeFromRole(roleId: string, permissionName: string): Observable<unknown> { return this.delete(`/permissions/${roleId}`, { permissionName }); }
 
@@ -37,5 +49,35 @@ export class PermissionService extends ApiService {
     if (targetUserId === this.authStore.user()?.userId) {
       void this.authStore.refreshPermissions();
     }
+  }
+
+  private normalizePermission(source: unknown): PermissionResponse {
+    return {
+      id: this.field<number>(source, 'id') ?? 0,
+      roleId: this.field<string>(source, 'roleId') ?? '',
+      group: this.field<string>(source, 'group') ?? '',
+      name: this.field<string>(source, 'name', 'permissionName', 'permission') ?? '',
+      displayName: this.field<string>(source, 'displayName') ?? this.field<string>(source, 'name') ?? '',
+      description: this.field<string | null>(source, 'description') ?? null,
+    };
+  }
+
+  private normalizeEffective(source: unknown): EffectivePermissionsResponse {
+    const permissions = this.field<string[]>(source, 'permissions') ?? [];
+    const overrides = this.unwrapArray(this.field<unknown>(source, 'overrides')).map(override => ({
+      id: this.field<string>(override, 'id') ?? '',
+      permission: this.field<string>(override, 'permission', 'name') ?? '',
+      isGranted: this.field<boolean>(override, 'isGranted') ?? false,
+      grantedById: this.field<string>(override, 'grantedById') ?? '',
+      reason: this.field<string | null>(override, 'reason') ?? null,
+      createdAt: this.field<string>(override, 'createdAt') ?? '',
+      expiresAt: this.field<string | null>(override, 'expiresAt') ?? null,
+    }));
+
+    return {
+      userId: this.field<string>(source, 'userId') ?? '',
+      permissions,
+      overrides,
+    };
   }
 }

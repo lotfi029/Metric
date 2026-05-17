@@ -25,6 +25,41 @@ export abstract class ApiService {
       : this.http.request<T>('DELETE', `${this.base}${path}`, { body });
   }
 
+  protected unwrap<T = unknown>(response: unknown): T {
+    const value = response as Record<string, unknown> | null;
+    if (value && typeof value === 'object') {
+      if ('value' in value) return value['value'] as T;
+      if ('Value' in value) return value['Value'] as T;
+      if ('result' in value) return value['result'] as T;
+      if ('Result' in value) return value['Result'] as T;
+    }
+    return response as T;
+  }
+
+  protected unwrapArray<T = unknown>(response: unknown): T[] {
+    const unwrapped = this.unwrap<unknown>(response);
+    const value = unwrapped as Record<string, unknown> | null;
+    if (Array.isArray(unwrapped)) return unwrapped as T[];
+    if (value && typeof value === 'object') {
+      if (Array.isArray(value['items'])) return value['items'] as T[];
+      if (Array.isArray(value['Items'])) return value['Items'] as T[];
+      if (Array.isArray(value['data'])) return value['data'] as T[];
+      if (Array.isArray(value['Data'])) return value['Data'] as T[];
+    }
+    return [];
+  }
+
+  protected field<T>(source: unknown, ...keys: string[]): T | undefined {
+    const value = source as Record<string, unknown> | null;
+    if (!value || typeof value !== 'object') return undefined;
+    for (const key of keys) {
+      if (key in value) return value[key] as T;
+      const match = Object.keys(value).find(existing => existing.toLowerCase() === key.toLowerCase());
+      if (match) return value[match] as T;
+    }
+    return undefined;
+  }
+
   private toParams(params?: Record<string, unknown>): HttpParams | undefined {
     if (!params) {
       return undefined;

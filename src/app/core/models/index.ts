@@ -59,6 +59,9 @@ export interface CreateClientRequest {
   firstName: string; lastName: string; email: string; userName: string;
   password: string; phone: string; address: string; notes?: string;
 }
+export interface UpdateClientRequest {
+  firstName: string; lastName: string; phone: string; address: string; notes?: string;
+}
 
 export interface DepartmentResponse {
   id: string; name: string; description: string | null; createdAt: string;

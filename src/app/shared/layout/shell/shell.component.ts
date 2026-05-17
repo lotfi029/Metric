@@ -19,10 +19,10 @@ import { TopbarComponent } from '../topbar/topbar.component';
     </div>
   `,
   styles: [`
-    .shell { min-height: 100vh; display: flex; background: #f8fafc; }
-    .main { flex: 1; min-width: 0; background: #fff; }
-    .content { min-height: calc(100vh - 64px); padding: 24px; box-sizing: border-box; background: #f8fafc; }
-    @media (max-width: 720px) { .content { padding: 16px; } }
+    .shell { min-height: 100vh; display: flex; background: #eef3f8; }
+    .main { flex: 1; min-width: 0; background: #eef3f8; }
+    .content { min-height: calc(100vh - 64px); max-width: 1440px; margin: 0 auto; padding: 24px; box-sizing: border-box; background: #eef3f8; }
+    @media (max-width: 720px) { .content { padding: 14px; } }
   `],
 })
 export class ShellComponent {}
