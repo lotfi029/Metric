@@ -40,34 +40,38 @@ export type ClientDialogData = { client?: ClientResponse };
       <form [formGroup]="form" class="grid">
         <mat-form-field appearance="outline">
           <mat-label>First name</mat-label>
-          <input matInput formControlName="firstName">
+          <input matInput formControlName="firstName" autocomplete="given-name">
           <mat-error>{{ controlError('firstName') }}</mat-error>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Last name</mat-label>
-          <input matInput formControlName="lastName">
+          <input matInput formControlName="lastName" autocomplete="family-name">
           <mat-error>{{ controlError('lastName') }}</mat-error>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Email</mat-label>
-          <input matInput formControlName="email" [readonly]="isEdit">
+          <input matInput type="email" formControlName="email" [readonly]="isEdit" autocomplete="email">
+          <mat-icon matSuffix>alternate_email</mat-icon>
           <mat-error>{{ controlError('email') }}</mat-error>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Username</mat-label>
-          <input matInput formControlName="userName" [readonly]="isEdit">
+          <input matInput formControlName="userName" [readonly]="isEdit" autocomplete="username">
+          <mat-icon matSuffix>account_circle</mat-icon>
           <mat-error>{{ controlError('userName') }}</mat-error>
         </mat-form-field>
         @if (!isEdit) {
           <mat-form-field appearance="outline">
             <mat-label>Password</mat-label>
-            <input matInput type="password" formControlName="password">
+            <input matInput type="password" formControlName="password" autocomplete="new-password">
+            <mat-icon matSuffix>lock</mat-icon>
             <mat-error>{{ controlError('password') }}</mat-error>
           </mat-form-field>
         }
         <mat-form-field appearance="outline">
           <mat-label>Phone</mat-label>
-          <input matInput formControlName="phone">
+          <input matInput formControlName="phone" autocomplete="tel">
+          <mat-icon matSuffix>call</mat-icon>
           <mat-error>{{ controlError('phone') }}</mat-error>
         </mat-form-field>
         <mat-form-field appearance="outline" class="wide">
@@ -98,12 +102,13 @@ export type ClientDialogData = { client?: ClientResponse };
     .icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 8px; background: #dbeafe; color: #1d4ed8; }
     h2 { margin: 0; padding: 0; color: #172033; }
     p { margin: 4px 0 0; color: #64748b; }
-    mat-dialog-content { width: min(780px, 86vw); padding-top: 12px !important; }
-    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    mat-dialog-content { width: 100%; max-width: 100%; padding-top: 14px !important; overflow-x: hidden; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(240px, 1fr)); gap: 14px 16px; }
+    mat-form-field { width: 100%; }
     .wide { grid-column: 1 / -1; }
     .error { padding: 10px 12px; border-radius: 8px; background: #fee2e2; color: #991b1b; font-weight: 700; }
     mat-spinner { display: inline-block; margin: 0 12px; }
-    @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } }
+    @media (max-width: 680px) { .grid { grid-template-columns: minmax(0, 1fr); } }
   `],
 })
 export class AddClientDialogComponent {

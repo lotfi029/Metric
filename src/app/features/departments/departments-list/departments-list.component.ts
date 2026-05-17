@@ -7,55 +7,110 @@ import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dial
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { firstValueFrom } from 'rxjs';
 import { PERMISSIONS } from '../../../core/constants/permissions';
 import { DepartmentResponse } from '../../../core/models';
 import { DepartmentService } from '../../../core/http/department.service';
+import { ErrorHandlerService } from '../../../core/http/error-handler.service';
 import { HasPermissionDirective } from '../../../shared/directives';
 
 @Component({
   selector: 'app-department-form-dialog',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule, MatInputModule],
+  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressSpinnerModule],
   template: `
-    <h2 mat-dialog-title>Create Department</h2>
+    <header class="dialog-head">
+      <span class="dialog-icon"><mat-icon>add_business</mat-icon></span>
+      <div>
+        <h2 mat-dialog-title>Create Department</h2>
+        <p>Add a department that employees can be assigned to.</p>
+      </div>
+    </header>
     <mat-dialog-content>
       <form [formGroup]="form" class="form">
         <mat-form-field appearance="outline">
-          <mat-label>Name</mat-label>
-          <input matInput formControlName="name">
-          <mat-error>Department name is required.</mat-error>
+          <mat-label>Department name</mat-label>
+          <input matInput formControlName="name" autocomplete="off" placeholder="e.g. Design">
+          <mat-error>{{ controlError('name') }}</mat-error>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Description</mat-label>
-          <textarea matInput rows="3" formControlName="description"></textarea>
+          <textarea matInput rows="3" formControlName="description" placeholder="Describe the department purpose"></textarea>
+          <mat-error>{{ controlError('description') }}</mat-error>
         </mat-form-field>
       </form>
+      @if (errorMessage()) {
+        <p class="error">{{ errorMessage() }}</p>
+      }
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-raised-button color="primary" (click)="submit()">Create</button>
+      <button mat-button mat-dialog-close [disabled]="isSaving()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="submit()" [disabled]="form.invalid || isSaving()">
+        <mat-spinner diameter="18" [class.is-hidden]="!isSaving()" />
+        <mat-icon [class.is-hidden]="isSaving()">add</mat-icon>
+        <span>{{ isSaving() ? 'Creating...' : 'Create department' }}</span>
+      </button>
     </mat-dialog-actions>
   `,
-  styles: [`.form { width: min(520px, 78vw); display: grid; gap: 12px; padding-top: 8px; }`],
+  styles: [`
+    .dialog-head { display: flex; align-items: center; gap: 12px; padding: 20px 24px 4px; }
+    .dialog-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 8px; background: #dbeafe; color: #1d4ed8; }
+    h2 { margin: 0; padding: 0; color: #172033; }
+    p { margin: 4px 0 0; color: #64748b; }
+    mat-dialog-content { width: 100%; max-width: 100%; padding-top: 14px !important; overflow-x: hidden; }
+    .form { display: grid; gap: 14px; }
+    mat-form-field { width: 100%; }
+    .error { margin: 0; padding: 10px 12px; border-radius: 8px; background: #fee2e2; color: #991b1b; font-weight: 700; }
+    mat-dialog-actions button { min-height: 40px; }
+    mat-spinner { display: inline-block; margin-right: 8px; }
+    .is-hidden { display: none !important; }
+  `],
 })
 export class DepartmentFormDialogComponent {
   private readonly fb = inject(FormBuilder);
   private readonly service = inject(DepartmentService);
   private readonly dialogRef = inject(MatDialogRef<DepartmentFormDialogComponent>);
+  private readonly errors = inject(ErrorHandlerService);
+  readonly isSaving = signal(false);
+  readonly errorMessage = signal('');
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
     description: ['', Validators.maxLength(500)],
   });
 
   async submit(): Promise<void> {
-    if (this.form.invalid) {
+    if (this.form.invalid || this.isSaving()) {
       this.form.markAllAsTouched();
       return;
     }
-    await firstValueFrom(this.service.create(this.form.getRawValue()));
-    this.dialogRef.close(true);
+
+    try {
+      this.isSaving.set(true);
+      this.errorMessage.set('');
+      const raw = this.form.getRawValue();
+      await firstValueFrom(this.service.create({
+        name: raw.name.trim(),
+        description: raw.description.trim() || undefined,
+      }));
+      this.dialogRef.close(true);
+    } catch (error: any) {
+      const parsed = this.errors.parseHttpError(error);
+      this.errorMessage.set(parsed.generalMessage);
+      this.errors.applyToForm(this.form, parsed.fieldErrors);
+    } finally {
+      this.isSaving.set(false);
+    }
+  }
+
+  controlError(name: keyof typeof this.form.controls): string {
+    const control = this.form.controls[name];
+    if (!control.touched && !control.dirty) return '';
+    if (control.hasError('serverError')) return control.getError('serverError');
+    if (control.hasError('required')) return 'This field is required.';
+    if (control.hasError('maxlength')) return 'This field is too long.';
+    return '';
   }
 }
 
@@ -86,7 +141,7 @@ export class DepartmentFormDialogComponent {
         <a class="card" [routerLink]="['/departments', dept.id]">
           <div class="card-top">
             <span class="dept-icon"><mat-icon>corporate_fare</mat-icon></span>
-            @if (dept.departmentHead) {
+            @if (dept.departmentHead || dept.departmentHeadId) {
               <span class="badge ok">Head assigned</span>
             } @else {
               <span class="badge warn">No head</span>
@@ -135,11 +190,16 @@ export class DepartmentsListComponent {
   }
 
   headedCount(): number {
-    return this.departments().filter(dept => !!dept.departmentHead).length;
+    return this.departments().filter(dept => !!(dept.departmentHead || dept.departmentHeadId)).length;
   }
 
   openCreate(): void {
-    this.dialog.open(DepartmentFormDialogComponent).afterClosed().subscribe(result => {
+    this.dialog.open(DepartmentFormDialogComponent, {
+      autoFocus: false,
+      width: 'min(620px, calc(100vw - 32px))',
+      maxWidth: 'calc(100vw - 32px)',
+      maxHeight: 'calc(100vh - 32px)',
+    }).afterClosed().subscribe(result => {
       if (result) {
         this.snackBar.open('Department created.', 'Dismiss', { duration: 2500 });
         void this.load();

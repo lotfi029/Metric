@@ -195,13 +195,24 @@ export class ClientsListComponent {
   }
 
   openAdd(): void {
-    this.dialog.open(AddClientDialogComponent).afterClosed().subscribe(result => {
+    this.dialog.open(AddClientDialogComponent, {
+      autoFocus: false,
+      width: 'min(820px, calc(100vw - 32px))',
+      maxWidth: 'calc(100vw - 32px)',
+      maxHeight: 'calc(100vh - 32px)',
+    }).afterClosed().subscribe(result => {
       if (result?.success) void this.load(false, result.clientId);
     });
   }
 
   openEdit(client: ClientResponse): void {
-    this.dialog.open(AddClientDialogComponent, { data: { client } }).afterClosed().subscribe(result => {
+    this.dialog.open(AddClientDialogComponent, {
+      autoFocus: false,
+      width: 'min(820px, calc(100vw - 32px))',
+      maxWidth: 'calc(100vw - 32px)',
+      maxHeight: 'calc(100vh - 32px)',
+      data: { client },
+    }).afterClosed().subscribe(result => {
       if (result?.success) void this.load(false, client.id);
     });
   }

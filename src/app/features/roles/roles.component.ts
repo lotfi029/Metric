@@ -4,7 +4,9 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -12,6 +14,7 @@ import { firstValueFrom } from 'rxjs';
 import { ALL_PERMISSIONS, PERMISSIONS } from '../../core/constants/permissions';
 import { PermissionResponse, RoleResponse } from '../../core/models';
 import { AuthStore } from '../../core/auth/auth.store';
+import { ErrorHandlerService } from '../../core/http/error-handler.service';
 import { PermissionService } from '../../core/http/permission.service';
 import { RoleService } from '../../core/http/role.service';
 import { HasPermissionDirective } from '../../shared/directives';
@@ -19,15 +22,34 @@ import { HasPermissionDirective } from '../../shared/directives';
 @Component({
   selector: 'app-roles',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, MatExpansionModule, MatFormFieldModule, MatInputModule, MatSlideToggleModule, MatTooltipModule, HasPermissionDirective],
+  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, MatExpansionModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressSpinnerModule, MatSlideToggleModule, MatTooltipModule, HasPermissionDirective],
   template: `
     <div class="layout">
       <aside class="roles-panel">
-        <h1>Roles</h1>
-        <form [formGroup]="createForm" *appHasPermission="PERMISSIONS.roles.create" class="create">
-          <mat-form-field appearance="outline"><mat-label>Role name</mat-label><input matInput formControlName="roleName"></mat-form-field>
-          <button mat-raised-button color="primary" type="button" (click)="createRole()">Create</button>
+        <div class="panel-head">
+          <div>
+            <h1>Roles</h1>
+            <p>{{ roles().length }} configured roles</p>
+          </div>
+          <mat-icon>admin_panel_settings</mat-icon>
+        </div>
+
+        <form [formGroup]="createForm" *appHasPermission="PERMISSIONS.roles.create" class="create" (ngSubmit)="createRole()">
+          <mat-form-field appearance="outline">
+            <mat-label>Role name</mat-label>
+            <input matInput formControlName="roleName" autocomplete="off" placeholder="e.g. Designer">
+            <mat-error>{{ roleNameError() }}</mat-error>
+          </mat-form-field>
+          @if (createError()) {
+            <p class="error">{{ createError() }}</p>
+          }
+          <button mat-raised-button color="primary" type="submit" [disabled]="createForm.invalid || isCreating()">
+            <mat-spinner diameter="18" [class.is-hidden]="!isCreating()" />
+            <mat-icon [class.is-hidden]="isCreating()">add</mat-icon>
+            <span>{{ isCreating() ? 'Creating...' : 'Create role' }}</span>
+          </button>
         </form>
+
         @for (role of roles(); track role.id) {
           <button class="role-item" [class.selected]="selectedRole()?.id === role.id" (click)="selectRole(role)">
             <span>{{ role.roleName }}</span>
@@ -66,10 +88,16 @@ import { HasPermissionDirective } from '../../shared/directives';
   styles: [`
     .layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; }
     .roles-panel, .matrix { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
-    h1, h2 { margin: 0 0 16px; } .create { display: grid; gap: 8px; margin-bottom: 14px; }
+    .panel-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; margin-bottom: 14px; }
+    .panel-head mat-icon { color: #2563eb; }
+    h1, h2 { margin: 0 0 16px; } .panel-head h1 { margin-bottom: 2px; } .panel-head p { margin: 0; color: #64748b; font-size: 13px; }
+    .create { display: grid; gap: 8px; margin-bottom: 14px; padding: 12px; background: #f8fafc; border-radius: 8px; }
+    .create button { min-height: 42px; } .create mat-spinner { display: inline-block; margin-right: 8px; }
+    .is-hidden { display: none !important; }
     .role-item { width: 100%; display: flex; justify-content: space-between; align-items: center; border: 0; background: transparent; padding: 12px; border-radius: 8px; text-align: left; cursor: pointer; }
     .role-item:hover, .role-item.selected { background: #eff6ff; color: #1d4ed8; }
     small { display: block; color: #64748b; } .info { padding: 12px; background: #eff6ff; color: #1e40af; border-radius: 8px; }
+    .error { margin: 0; padding: 8px 10px; border-radius: 8px; background: #fee2e2; color: #991b1b; font-size: 13px; font-weight: 700; }
     .perm-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
     @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
   `],
@@ -81,11 +109,14 @@ export class RolesComponent {
   private readonly roleService = inject(RoleService);
   private readonly permissionService = inject(PermissionService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly errors = inject(ErrorHandlerService);
   readonly roles = signal<RoleResponse[]>([]);
   readonly selectedRole = signal<RoleResponse | null>(null);
   readonly rolePermissions = signal<PermissionResponse[]>([]);
   readonly groups = computed(() => [...new Set(ALL_PERMISSIONS.map(permission => permission.group))]);
-  readonly createForm = this.fb.nonNullable.group({ roleName: ['', Validators.required] });
+  readonly createForm = this.fb.nonNullable.group({ roleName: ['', [Validators.required, Validators.maxLength(80)]] });
+  readonly isCreating = signal(false);
+  readonly createError = signal('');
 
   constructor() {
     void this.loadRoles();
@@ -96,6 +127,14 @@ export class RolesComponent {
   activeCount(group: string): number { return this.permissionsByGroup(group).filter(permission => this.hasPermission(permission.key)).length; }
   isSystem(role: RoleResponse): boolean { return ['admin', 'manager', 'departmenthead', 'employee', 'client'].includes(role.roleName.toLowerCase()); }
   isAllPermissionsRole(role: RoleResponse): boolean { return ['admin', 'manager'].includes(role.roleName.toLowerCase()); }
+  roleNameError(): string {
+    const control = this.createForm.controls.roleName;
+    if (!control.touched && !control.dirty) return '';
+    if (control.hasError('required')) return 'Role name is required.';
+    if (control.hasError('maxlength')) return 'Use 80 characters or fewer.';
+    if (control.hasError('serverError')) return control.getError('serverError');
+    return '';
+  }
 
   async selectRole(role: RoleResponse): Promise<void> {
     this.selectedRole.set(role);
@@ -103,10 +142,33 @@ export class RolesComponent {
   }
 
   async createRole(): Promise<void> {
-    if (this.createForm.invalid) return;
-    await firstValueFrom(this.roleService.create(this.createForm.controls.roleName.value));
-    this.createForm.reset();
-    await this.loadRoles();
+    if (this.createForm.invalid || this.isCreating()) {
+      this.createForm.markAllAsTouched();
+      return;
+    }
+
+    const roleName = this.createForm.controls.roleName.value.trim();
+    if (!roleName) {
+      this.createForm.controls.roleName.setErrors({ required: true });
+      this.createForm.controls.roleName.markAsTouched();
+      return;
+    }
+
+    try {
+      this.isCreating.set(true);
+      this.createError.set('');
+      await firstValueFrom(this.roleService.create(roleName));
+      this.snackBar.open('Role created.', 'Dismiss', { duration: 2500 });
+      this.createForm.reset();
+      await this.loadRoles(roleName);
+    } catch (error: any) {
+      const parsed = this.errors.parseHttpError(error);
+      this.createError.set(parsed.generalMessage);
+      this.errors.applyToForm(this.createForm, parsed.fieldErrors);
+      this.snackBar.open(parsed.generalMessage, 'Dismiss', { duration: 4000 });
+    } finally {
+      this.isCreating.set(false);
+    }
   }
 
   async toggle(permissionName: string, checked: boolean): Promise<void> {
@@ -126,9 +188,13 @@ export class RolesComponent {
     }
   }
 
-  private async loadRoles(): Promise<void> {
+  private async loadRoles(selectRoleName?: string): Promise<void> {
     const roles = await firstValueFrom(this.roleService.getAll()).catch(() => []);
     this.roles.set(roles);
-    if (!this.selectedRole() && roles[0]) await this.selectRole(roles[0]);
+    const target = selectRoleName
+      ? roles.find(role => role.roleName.toLowerCase() === selectRoleName.toLowerCase())
+      : roles.find(role => role.id === this.selectedRole()?.id);
+    if (target) await this.selectRole(target);
+    else if (!this.selectedRole() && roles[0]) await this.selectRole(roles[0]);
   }
 }

@@ -9,7 +9,7 @@
     <!-- Profile Info (col-span-8) -->
     <div class="col-span-8 bg-white rounded-xl p-8 card-base">
       <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Account Information</h2>
-      
+
       <div class="space-y-6">
         <!-- Avatar -->
         <div class="mb-8">
@@ -54,7 +54,7 @@
     <!-- Permissions (col-span-4) -->
     <div class="col-span-4 bg-white rounded-xl p-8 card-base">
       <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Your Permissions</h2>
-      
+
       <div class="space-y-4" *ngIf="permissionsByGroup() | keyvalue as groups; else noPerms">
         <div *ngFor="let group of groups" class="border-l-4 border-[#6cd3f7] pl-4">
           <h3 class="font-['Manrope'] font-bold text-[#041627] text-sm mb-2">{{ group.key }}</h3>
@@ -63,7 +63,7 @@
               *ngFor="let perm of group.value"
               class="inline-flex items-center px-3 py-1 rounded-full text-xs bg-[#e0e3e5] text-[#044627]"
             >
-              {{ perm.displayName }}
+              {{ perm }}
             </span>
           </div>
         </div>

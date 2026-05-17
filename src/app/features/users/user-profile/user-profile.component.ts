@@ -1,9 +1,8 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../../../core/services/user.service';
-import { PermissionService } from '../../../core/services/permission.service';
+import { PermissionService } from '../../../core/http/permission.service';
 import { DetailedUserResponse } from '../../../core/models/user.model';
-import { PermissionResponse } from '../../../core/models/permission.model';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 
 @Component({
@@ -11,17 +10,16 @@ import { BadgeComponent } from '../../../shared/components/badge/badge.component
   standalone: true,
   imports: [CommonModule, BadgeComponent],
   templateUrl: './user-profile.component.html',
-  styleUrls: ['./user-profile.component.css']
+  styleUrls: ['./user-profile.component.css'],
 })
 export class UserProfileComponent implements OnInit {
   user = signal<DetailedUserResponse | null>(null);
-  permissions = signal<PermissionResponse[]>([]);
-  permissionsByGroup = signal<{ [key: string]: PermissionResponse[] }>({});
+  permissionsByGroup = signal<{ [key: string]: string[] }>({});
   isLoading = signal(true);
 
   constructor(
     private userService: UserService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
   ) {}
 
   ngOnInit() {
@@ -38,31 +36,34 @@ export class UserProfileComponent implements OnInit {
       error: (err) => {
         console.error('Failed to load user profile:', err);
         this.isLoading.set(false);
-      }
+      },
     });
   }
 
   loadPermissions(userId: string) {
-    this.permissionService.getUserPermissions(userId).subscribe({
-      next: (perms) => {
-        this.permissions.set(perms);
-        this.groupPermissions(perms);
+    this.permissionService.getUserEffective(userId).subscribe({
+      next: (response) => {
+        this.groupPermissions(response.permissions);
         this.isLoading.set(false);
       },
       error: (err) => {
         console.error('Failed to load permissions:', err);
         this.isLoading.set(false);
-      }
+      },
     });
   }
 
-  groupPermissions(perms: PermissionResponse[]) {
-    const grouped: { [key: string]: PermissionResponse[] } = {};
-    perms.forEach(p => {
-      if (!grouped[p.group]) {
-        grouped[p.group] = [];
+  groupPermissions(permissionNames: string[]) {
+    const grouped: { [key: string]: string[] } = {};
+    permissionNames.forEach((name) => {
+      // Extract group from permission name (e.g., "users.read" -> "Users")
+      const [group] = name.split('.');
+      const groupLabel = group.charAt(0).toUpperCase() + group.slice(1);
+
+      if (!grouped[groupLabel]) {
+        grouped[groupLabel] = [];
       }
-      grouped[p.group].push(p);
+      grouped[groupLabel].push(name);
     });
     this.permissionsByGroup.set(grouped);
   }

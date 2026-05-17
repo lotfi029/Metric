@@ -1,8 +1,12 @@
+import { UserListResponse } from './user.model';
+
 export interface DepartmentResponse {
   id: string;
   name: string;
   description: string;
-  isActive: boolean;
+  isActive?: boolean;
+  departmentHeadId?: string;
+  departmentHead?: UserListResponse | null;
   createdAt: string;
 }
 

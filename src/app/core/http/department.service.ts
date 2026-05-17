@@ -31,11 +31,21 @@ export class DepartmentService extends ApiService {
 
   private normalizeDepartment(source: unknown): DepartmentResponse {
     const head = this.field<unknown>(source, 'departmentHead', 'head');
+    const departmentHeadId =
+      this.field<string | null>(
+        source,
+        'departmentHeadId',
+        'departmentHeadID',
+        'headId',
+        'headUserId',
+      ) ??
+      (head ? this.field<string | null>(head, 'id', 'employeeId', 'appUserId', 'userId') : null);
     return {
       id: this.field<string>(source, 'id', 'departmentId') ?? '',
       name: this.field<string>(source, 'name') ?? '',
       description: this.field<string | null>(source, 'description') ?? null,
       createdAt: this.field<string>(source, 'createdAt') ?? '',
+      departmentHeadId: departmentHeadId ?? undefined,
       departmentHead: head ? this.normalizeEmployee(head) : null,
     };
   }
