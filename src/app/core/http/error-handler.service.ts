@@ -8,10 +8,19 @@ export interface FormError { generalMessage: string; fieldErrors: FieldError[]; 
 @Injectable({ providedIn: 'root' })
 export class ErrorHandlerService {
   parseHttpError(error: HttpErrorResponse): FormError {
-    const extensions = error.error?.extensions?.errors as Record<string, string[]> | null;
-    if (!extensions) {
+    const payload = error.error;
+    const errors =
+      (payload?.errors as Record<string, string[]> | undefined) ??
+      (payload?.extensions?.errors as Record<string, string[]> | undefined);
+
+    if (!errors) {
       return {
-        generalMessage: error.error?.title ?? error.error?.message ?? 'An unexpected error occurred.',
+        generalMessage:
+          payload?.detail ??
+          payload?.title ??
+          payload?.message ??
+          this.statusMessage(error.status || Number(payload?.status)) ??
+          'An unexpected error occurred.',
         fieldErrors: [],
       };
     }
@@ -19,12 +28,14 @@ export class ErrorHandlerService {
     const fieldErrors: FieldError[] = [];
     let generalMessage = '';
 
-    for (const [key, messages] of Object.entries(extensions)) {
+    for (const [key, messages] of Object.entries(errors)) {
+      const message = messages?.[0];
+      if (!message) continue;
       const isFieldError = !key.includes('.') && /^[A-Z]/.test(key);
       if (isFieldError) {
-        fieldErrors.push({ field: key, message: messages[0] });
+        fieldErrors.push({ field: key, message });
       } else {
-        generalMessage ||= messages[0];
+        generalMessage ||= message;
       }
     }
 
@@ -32,7 +43,11 @@ export class ErrorHandlerService {
       generalMessage = 'Please correct the errors below.';
     }
     if (!generalMessage) {
-      generalMessage = error.error?.title ?? 'An error occurred.';
+      generalMessage =
+        payload?.detail ??
+        payload?.title ??
+        this.statusMessage(error.status || Number(payload?.status)) ??
+        'An error occurred.';
     }
 
     return { generalMessage, fieldErrors };
@@ -54,5 +69,15 @@ export class ErrorHandlerService {
         form.controls[controlName].markAsTouched();
       }
     }
+  }
+
+  private statusMessage(status: number): string | null {
+    if (!status) return null;
+    if (status === 400) return 'The request could not be completed. Please check the details and try again.';
+    if (status === 401) return 'Please sign in again to continue.';
+    if (status === 403) return "You don't have permission to do this.";
+    if (status === 404) return 'The requested item was not found.';
+    if (status >= 500) return 'Server error. Please try again later.';
+    return null;
   }
 }

@@ -110,6 +110,8 @@ app-root {
            outline-none transition-all duration-150
            focus:border-[#0073e6] focus:ring-2 focus:ring-[#0073e6]/15
            disabled:bg-[#f2f4f6] disabled:text-[#9aa4b2] disabled:cursor-not-allowed;
+    font: 500 16px/1.45 'IBM Plex Sans', 'IBM Plex Sans Arabic', sans-serif;
+    letter-spacing: 0;
   }
 
   .input-error {
@@ -122,6 +124,8 @@ app-root {
            outline-none transition-all duration-150
            focus:border-[#0073e6] focus:ring-2 focus:ring-[#0073e6]/15
            disabled:bg-[#f2f4f6] disabled:text-[#9aa4b2] disabled:cursor-not-allowed;
+    font: 500 16px/1.45 'IBM Plex Sans', 'IBM Plex Sans Arabic', sans-serif;
+    letter-spacing: 0;
   }
 
   .card {
@@ -220,4 +224,67 @@ app-root {
 :focus-visible {
   outline: 2px solid #0073e6;
   outline-offset: 2px;
+}
+
+/* Global Material form polish */
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.mat-mdc-form-field .mat-mdc-text-field-wrapper {
+  border-radius: 8px !important;
+  background: #fff !important;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper {
+  background: #f8fbff !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.mat-mdc-form-field .mat-mdc-form-field-infix {
+  min-height: 54px;
+  padding-top: 17px;
+  padding-bottom: 11px;
+}
+
+.mat-mdc-form-field input.mat-mdc-input-element,
+.mat-mdc-form-field textarea.mat-mdc-input-element {
+  font: 500 16px/1.45 'IBM Plex Sans', 'IBM Plex Sans Arabic', sans-serif;
+  color: #041627;
+  letter-spacing: 0;
+}
+
+.mat-mdc-form-field textarea.mat-mdc-input-element {
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.mat-mdc-form-field input.mat-mdc-input-element::placeholder,
+.mat-mdc-form-field textarea.mat-mdc-input-element::placeholder {
+  color: #9aa4b2;
+  font-weight: 500;
+}
+
+.mat-mdc-form-field .mat-mdc-floating-label,
+.mat-mdc-form-field .mat-mdc-form-field-hint,
+.mat-mdc-form-field .mat-mdc-select-value {
+  font-family: 'IBM Plex Sans', 'IBM Plex Sans Arabic', sans-serif;
+  letter-spacing: 0;
+}
+
+.mat-mdc-form-field .mat-mdc-floating-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #344054;
+}
+
+.mat-mdc-form-field .mat-mdc-select-value {
+  color: #041627;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.45;
 }

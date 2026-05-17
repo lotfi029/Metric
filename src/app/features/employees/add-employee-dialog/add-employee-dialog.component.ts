@@ -6,7 +6,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
@@ -32,7 +31,6 @@ import { RoleService } from '../../../core/http/role.service';
     MatDialogModule,
     MatExpansionModule,
     MatFormFieldModule,
-    MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
@@ -41,11 +39,11 @@ import { RoleService } from '../../../core/http/role.service';
   ],
   template: `
     <header class="dialog-hero">
-      <div class="hero-icon"><mat-icon>badge</mat-icon></div>
+      <div class="hero-mark">EM</div>
       <div>
         <p class="eyebrow">New team member</p>
         <h2 mat-dialog-title>Add Employee</h2>
-        <p class="hero-copy">Create the employee profile, attach a department and role, then review permission exceptions.</p>
+        <p class="hero-copy">Create the profile, assignment, and permission exceptions.</p>
       </div>
     </header>
 
@@ -56,7 +54,7 @@ import { RoleService } from '../../../core/http/role.service';
         <mat-step [stepControl]="step1Form" label="Basic Info">
           <form [formGroup]="step1Form" class="form-panel">
             <div class="section-head">
-              <span class="section-icon"><mat-icon>person</mat-icon></span>
+              <span class="section-mark">01</span>
               <div>
                 <h3>Profile details</h3>
                 <p>Use the employee's real name and work contact information.</p>
@@ -79,34 +77,25 @@ import { RoleService } from '../../../core/http/role.service';
               <mat-form-field appearance="outline">
                 <mat-label>Email</mat-label>
                 <input matInput formControlName="email" type="email" autocomplete="email">
-                <mat-icon matSuffix>alternate_email</mat-icon>
                 <mat-error>{{ controlError('email') }}</mat-error>
               </mat-form-field>
 
               <mat-form-field appearance="outline">
                 <mat-label>Username</mat-label>
                 <input matInput formControlName="userName" autocomplete="username">
-                <mat-icon matSuffix>account_circle</mat-icon>
                 <mat-error>{{ controlError('userName') }}</mat-error>
               </mat-form-field>
 
               <mat-form-field appearance="outline">
                 <mat-label>Password</mat-label>
                 <input matInput type="password" formControlName="password" autocomplete="new-password">
-                <mat-icon matSuffix>lock</mat-icon>
                 <mat-hint>At least 8 characters.</mat-hint>
                 <mat-error>{{ controlError('password') }}</mat-error>
               </mat-form-field>
 
-              <div class="strength-card" [class.medium]="passwordStrength() === 'medium'" [class.strong]="passwordStrength() === 'strong'">
-                <span>Password strength</span>
-                <strong>{{ passwordStrength() }}</strong>
-              </div>
-
               <mat-form-field appearance="outline">
                 <mat-label>Job title</mat-label>
                 <input matInput formControlName="jobTitle">
-                <mat-icon matSuffix>work</mat-icon>
                 <mat-error>{{ controlError('jobTitle') }}</mat-error>
               </mat-form-field>
 
@@ -122,7 +111,6 @@ import { RoleService } from '../../../core/http/role.service';
           <div class="actions">
             <button mat-raised-button color="primary" matStepperNext>
               Next
-              <mat-icon iconPositionEnd>arrow_forward</mat-icon>
             </button>
           </div>
         </mat-step>
@@ -130,7 +118,7 @@ import { RoleService } from '../../../core/http/role.service';
         <mat-step [stepControl]="step2Form" label="Department & Role">
           <form [formGroup]="step2Form" class="form-panel">
             <div class="section-head">
-              <span class="section-icon"><mat-icon>groups</mat-icon></span>
+              <span class="section-mark">02</span>
               <div>
                 <h3>Assignment</h3>
                 <p>Choose where this employee belongs and which role should seed their permissions.</p>
@@ -163,12 +151,10 @@ import { RoleService } from '../../../core/http/role.service';
 
           <div class="actions">
             <button mat-button matStepperPrevious>
-              <mat-icon>arrow_back</mat-icon>
               Back
             </button>
             <button mat-raised-button color="primary" matStepperNext>
               Next
-              <mat-icon iconPositionEnd>arrow_forward</mat-icon>
             </button>
           </div>
         </mat-step>
@@ -188,7 +174,6 @@ import { RoleService } from '../../../core/http/role.service';
           <div class="permissions">
             <section>
               <div class="permission-title grant">
-                <mat-icon>add_circle</mat-icon>
                 <strong>Grant</strong>
               </div>
               @for (group of permissionGroups(); track group) {
@@ -208,7 +193,6 @@ import { RoleService } from '../../../core/http/role.service';
 
             <section>
               <div class="permission-title deny">
-                <mat-icon>remove_circle</mat-icon>
                 <strong>Deny</strong>
               </div>
               @for (group of permissionGroups(); track group) {
@@ -229,12 +213,10 @@ import { RoleService } from '../../../core/http/role.service';
 
           <div class="actions">
             <button mat-button matStepperPrevious [disabled]="isSaving()">
-              <mat-icon>arrow_back</mat-icon>
               Back
             </button>
             <button mat-raised-button color="primary" [disabled]="isSaving()" (click)="submit()">
               <mat-spinner diameter="18" [class.is-hidden]="!isSaving()"></mat-spinner>
-              <mat-icon [class.is-hidden]="isSaving()">person_add</mat-icon>
               <span>{{ isSaving() ? 'Creating...' : 'Create employee' }}</span>
             </button>
           </div>
@@ -253,7 +235,7 @@ import { RoleService } from '../../../core/http/role.service';
       border-bottom: 1px solid var(--color-border);
       background: #fff;
     }
-    .hero-icon {
+    .hero-mark {
       display: grid;
       place-items: center;
       width: 40px;
@@ -261,6 +243,8 @@ import { RoleService } from '../../../core/http/role.service';
       border-radius: 8px;
       background: var(--color-navy-800);
       color: #fff;
+      font-size: 12px;
+      font-weight: 900;
     }
     .eyebrow { margin: 0 0 4px; color: var(--color-text-muted); font-size: 12px; font-weight: 700; }
     h2[mat-dialog-title] {
@@ -293,7 +277,7 @@ import { RoleService } from '../../../core/http/role.service';
       align-items: center;
       margin-bottom: 12px;
     }
-    .section-icon {
+    .section-mark {
       display: grid;
       place-items: center;
       width: 40px;
@@ -301,6 +285,8 @@ import { RoleService } from '../../../core/http/role.service';
       border-radius: 8px;
       background: var(--color-cyan-100);
       color: #006e8c;
+      font-size: 12px;
+      font-weight: 900;
     }
     h3 { margin: 0; color: var(--color-navy-800); font: 800 16px/1.25 Manrope, sans-serif; }
     .section-head p, .permissions-head p { margin: 2px 0 0; color: var(--color-text-muted); }
@@ -308,22 +294,18 @@ import { RoleService } from '../../../core/http/role.service';
     .assignment-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
     .wide { grid-column: 1 / -1; }
     mat-form-field { width: 100%; }
-    .strength-card {
-      min-height: 48px;
-      align-self: start;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 9px 12px;
-      border-radius: 8px;
-      background: var(--color-error-bg);
-      color: var(--color-error);
+    :host ::ng-deep .mat-mdc-form-field input.mat-mdc-input-element,
+    :host ::ng-deep .mat-mdc-form-field textarea.mat-mdc-input-element {
+      color: #041627;
+      font: 500 16px/1.45 'IBM Plex Sans', 'IBM Plex Sans Arabic', sans-serif;
+      letter-spacing: 0;
     }
-    .strength-card span { color: inherit; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
-    .strength-card strong { text-transform: capitalize; }
-    .strength-card.medium { background: var(--color-warning-bg); color: var(--color-warning); }
-    .strength-card.strong { background: var(--color-success-bg); color: var(--color-success); }
+    :host ::ng-deep .mat-mdc-form-field .mat-mdc-floating-label,
+    :host ::ng-deep .mat-mdc-select-value {
+      color: #344054;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
     .permissions-head {
       display: flex;
       justify-content: space-between;
@@ -344,7 +326,6 @@ import { RoleService } from '../../../core/http/role.service';
     .permission-title {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
       margin-bottom: 10px;
       padding: 7px 10px;
       border-radius: 8px;
@@ -417,12 +398,6 @@ export class AddEmployeeDialogComponent {
     departmentId: ['', Validators.required],
     roleId: [null as string | null],
   });
-  readonly passwordStrength = computed(() => {
-    const value = this.step1Form.controls.password.value;
-    const score = Number(value.length >= 8) + Number(/[A-Z]/.test(value)) + Number(/[0-9]/.test(value)) + Number(/[^A-Za-z0-9]/.test(value));
-    return score >= 4 ? 'strong' : score >= 2 ? 'medium' : 'weak';
-  });
-
   constructor() {
     void this.loadLookups();
   }

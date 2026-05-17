@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { map, tap } from 'rxjs/operators';
 import { RoleResponse } from '../models';
 import { ApiService } from './api.service';
@@ -17,8 +18,15 @@ export class RoleService extends ApiService {
     return this.get<unknown>(`/roles/user/${userId}`).pipe(map(response => this.unwrapArray(response).map(role => this.normalizeRole(role))));
   }
 
-  create(roleName: string): Observable<unknown> { return this.post('/roles/create', { roleName }); }
-  update(roleId: string, newName: string): Observable<unknown> { return this.put('/roles/update', { roleId, newRoleName: newName }); }
+  create(roleName: string): Observable<unknown> {
+    const body = { roleName, name: roleName };
+    return this.post('/roles/create', body).pipe(catchError(() => this.post('/roles', body)));
+  }
+
+  update(roleId: string, newName: string): Observable<unknown> {
+    const body = { roleId, newRoleName: newName, roleName: newName, name: newName };
+    return this.put('/roles/update', body).pipe(catchError(() => this.put(`/roles/${roleId}`, body)));
+  }
   deleteRole(roleId: string): Observable<unknown> { return this.delete(`/roles/${roleId}`); }
   assignToUser(userId: string, roleId: string): Observable<unknown> {
     return this.post('/roles/assign-to-user', { userId, roleId }).pipe(tap(() => this.refreshSelf(userId)));

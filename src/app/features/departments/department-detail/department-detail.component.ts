@@ -10,7 +10,6 @@ import {
   MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
@@ -20,6 +19,7 @@ import { PERMISSIONS } from '../../../core/constants/permissions';
 import { DepartmentResponse, EmployeeListResponse } from '../../../core/models';
 import { DepartmentService } from '../../../core/http/department.service';
 import { EmployeeService } from '../../../core/http/employee.service';
+import { ErrorHandlerService } from '../../../core/http/error-handler.service';
 import { HasPermissionDirective } from '../../../shared/directives';
 
 type PickerData = {
@@ -51,7 +51,7 @@ type PickerData = {
           <mat-select [formControl]="control">
             @for (employee of data.employees; track employee.id) {
               <mat-option [value]="employee.appUserId || employee.id">
-                {{ employee.firstName }} {{ employee.lastName }} · {{ employee.jobTitle }}
+                {{ employee.firstName }} {{ employee.lastName }} - {{ employee.jobTitle || 'No title' }}
               </mat-option>
             }
           </mat-select>
@@ -109,7 +109,6 @@ export class PickerDialogComponent {
     CommonModule,
     MatButtonModule,
     MatDialogModule,
-    MatIconModule,
     MatProgressSpinnerModule,
     HasPermissionDirective,
   ],
@@ -117,44 +116,64 @@ export class PickerDialogComponent {
     @if (isLoading()) {
       <div class="loading"><mat-spinner diameter="36" /> Loading department</div>
     } @else if (department(); as dept) {
-      <header class="hero">
+      <header class="department-hero">
         <div>
-          <a class="back" href="/departments">Departments</a>
+          <a class="back" href="/departments">Back to departments</a>
           <h1>{{ dept.name }}</h1>
           <p>{{ dept.description || 'No description has been added yet.' }}</p>
         </div>
-        <div class="meta">
-          <span>Created</span>
-          <strong>{{ dept.createdAt | date: 'mediumDate' }}</strong>
+        <div class="hero-stats">
+          <article>
+            <span>Members</span>
+            <strong>{{ visibleMembers().length }}</strong>
+          </article>
+          <article>
+            <span>Created</span>
+            <strong>{{ dept.createdAt | date: 'mediumDate' }}</strong>
+          </article>
         </div>
       </header>
 
       <div class="layout">
-        <aside class="panel">
-          <div class="section-title">
-            <mat-icon>supervisor_account</mat-icon>
-            <h2>Department Head</h2>
-          </div>
+        <aside class="surface head-panel">
+          <header class="section-title">
+            <span class="section-mark">DH</span>
+            <div>
+              <h2>Department Head</h2>
+              <p>Assigned from any employee in the company.</p>
+            </div>
+          </header>
           @if (departmentHead(); as head) {
-            <div class="person-card">
+            <div class="person-card head-card">
               <span class="avatar">{{ initials(head) }}</span>
               <div>
                 <strong>{{ displayEmployee(head) }}</strong>
                 <span>{{ head.jobTitle || 'No title' }}</span>
+                <small>{{ head.email || 'No email' }}</small>
               </div>
             </div>
-            <button
-              mat-stroked-button
-              color="warn"
-              *appHasPermission="PERMISSIONS.departments.assignHead"
-              [disabled]="isSaving()"
-              (click)="removeHead()"
-            >
-              Remove Head
-            </button>
+            <div class="action-row">
+              <button
+                mat-stroked-button
+                *appHasPermission="PERMISSIONS.departments.assignHead"
+                [disabled]="isSaving()"
+                (click)="assignHead()"
+              >
+                Change head
+              </button>
+              <button
+                mat-stroked-button
+                color="warn"
+                *appHasPermission="PERMISSIONS.departments.assignHead"
+                [disabled]="isSaving()"
+                (click)="removeHead()"
+              >
+                Remove head
+              </button>
+            </div>
           } @else {
             <div class="empty-state compact">
-              <mat-icon>warning</mat-icon>
+              <span class="section-mark muted">--</span>
               <strong>No Department Head</strong>
               <span>The Manager will act as department head until one is assigned.</span>
             </div>
@@ -170,11 +189,11 @@ export class PickerDialogComponent {
           }
         </aside>
 
-        <section class="panel">
+        <section class="surface">
           <header class="members-head">
             <div>
               <h2>Members</h2>
-              <p>{{ members().length }} employees in this department</p>
+              <p>{{ visibleMembers().length }} employees in this department</p>
             </div>
             <button
               mat-raised-button
@@ -183,7 +202,6 @@ export class PickerDialogComponent {
               [disabled]="isSaving()"
               (click)="addEmployee()"
             >
-              <mat-icon>person_add</mat-icon>
               Add Employee
             </button>
           </header>
@@ -192,7 +210,7 @@ export class PickerDialogComponent {
             <div class="member-row table-head">
               <span>Name</span><span>Job Title</span><span>Status</span><span>Actions</span>
             </div>
-            @for (member of members(); track member.id) {
+            @for (member of visibleMembers(); track member.id) {
               <div class="member-row">
                 <div class="person-card inline">
                   <span class="avatar">{{ initials(member) }}</span>
@@ -226,7 +244,7 @@ export class PickerDialogComponent {
               </div>
             } @empty {
               <div class="empty-state">
-                <mat-icon>groups</mat-icon>
+                <span class="section-mark muted">0</span>
                 <strong>This department has no members yet.</strong>
                 <span>Add employees to get started.</span>
               </div>
@@ -239,32 +257,76 @@ export class PickerDialogComponent {
   styles: [
     `
       :host {
+        --dept-border: #d9e2ec;
+        --dept-soft: #f7fafc;
+        --dept-muted: #64748b;
+        --dept-text: #172033;
+        --dept-primary: #2563eb;
+        --dept-primary-soft: #e8f1ff;
+        --dept-success-soft: #ecfdf3;
+        --dept-success: #166534;
         display: block;
-        color: #172033;
+        color: var(--dept-text);
       }
       .loading {
         min-height: 50vh;
         display: grid;
         place-items: center;
         gap: 12px;
-        color: #64748b;
+        color: var(--dept-muted);
       }
-      .hero {
-        display: flex;
+      .department-hero {
+        position: relative;
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
         justify-content: space-between;
-        align-items: flex-end;
+        align-items: stretch;
         gap: 20px;
-        padding: 22px;
+        padding: 28px;
         margin-bottom: 18px;
-        border: 1px solid #dbe5ef;
+        border: 1px solid rgba(255, 255, 255, 0.14);
         border-radius: 8px;
-        background: linear-gradient(135deg, #ffffff 0%, #f4f8fb 100%);
+        background:
+          linear-gradient(135deg, rgba(2, 13, 24, 0.96), rgba(4, 22, 39, 0.92)),
+          url("data:image/svg+xml,%3Csvg width='900' height='420' viewBox='0 0 900 420' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='900' height='420' fill='%23041627'/%3E%3Cg stroke='%236cd3f7' opacity='.16'%3E%3Cpath d='M0 90h900M0 180h900M0 270h900M0 360h900M120 0v420M240 0v420M360 0v420M480 0v420M600 0v420M720 0v420M840 0v420'/%3E%3C/g%3E%3C/svg%3E");
+        background-size: cover;
+        box-shadow: 0 22px 70px rgba(4, 22, 39, 0.16);
+      }
+      .department-hero::after {
+        content: "";
+        position: absolute;
+        right: -130px;
+        bottom: -170px;
+        width: 430px;
+        height: 430px;
+        background: radial-gradient(circle, rgba(108, 211, 247, 0.24), transparent 62%);
+      }
+      .department-hero > * {
+        position: relative;
+        z-index: 1;
       }
       .back {
-        color: #2563eb;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 34px;
+        padding: 0 12px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
         text-decoration: none;
-        font-weight: 700;
-        font-size: 13px;
+        font: 800 12px/1 Manrope, sans-serif;
+      }
+      .back::before {
+        content: '<';
+        display: grid;
+        place-items: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
       }
       h1,
       h2 {
@@ -273,26 +335,50 @@ export class PickerDialogComponent {
       }
       h1 {
         margin-top: 8px;
-        font-size: 30px;
+        color: #ffffff;
+        font-size: clamp(30px, 4vw, 44px);
+        line-height: 1.04;
       }
       p {
         margin: 6px 0 0;
-        color: #64748b;
+        color: var(--dept-muted);
       }
-      .meta {
+      .department-hero p {
+        color: #c9d5e4;
+      }
+      .hero-stats {
         display: grid;
-        gap: 4px;
-        padding: 12px 14px;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        background: #fff;
-        min-width: 140px;
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+        gap: 10px;
+        min-width: min(330px, 100%);
       }
-      .meta span,
+      .hero-stats article {
+        display: grid;
+        align-content: center;
+        gap: 4px;
+        min-height: 78px;
+        padding: 16px;
+        border: 1px solid #e7edf4;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(14px);
+      }
+      .hero-stats article span {
+        color: #9fb0c4;
+        font: 800 11px/1.2 Manrope, sans-serif;
+        text-transform: uppercase;
+      }
+      .hero-stats article strong {
+        color: #ffffff;
+        font: 900 20px/1.1 Manrope, sans-serif;
+      }
+      .hero-stats span,
       .person-card span,
+      .person-card small,
       .table-head,
       .empty-state span {
-        color: #64748b;
+        color: var(--dept-muted);
       }
       .layout {
         display: grid;
@@ -300,12 +386,16 @@ export class PickerDialogComponent {
         gap: 18px;
         align-items: start;
       }
-      .panel {
+      .surface {
         background: #fff;
-        border: 1px solid #dbe5ef;
+        border: 1px solid var(--dept-border);
         border-radius: 8px;
-        padding: 18px;
+        padding: 20px;
         box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+      }
+      .head-panel {
+        display: grid;
+        gap: 14px;
       }
       .section-title,
       .members-head {
@@ -317,9 +407,28 @@ export class PickerDialogComponent {
       }
       .section-title {
         justify-content: flex-start;
+        align-items: flex-start;
       }
-      .section-title mat-icon {
-        color: #2563eb;
+      .section-title p {
+        margin-top: 2px;
+        font-size: 13px;
+      }
+      .section-mark {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: var(--dept-primary-soft);
+        color: var(--dept-primary);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0;
+        flex: 0 0 auto;
+      }
+      .section-mark.muted {
+        background: #eef2f7;
+        color: #64748b;
       }
       .person-card {
         display: flex;
@@ -328,8 +437,17 @@ export class PickerDialogComponent {
         padding: 12px;
         border: 1px solid #e2e8f0;
         border-radius: 8px;
-        background: #f8fafc;
+        background: var(--dept-soft);
         margin-bottom: 14px;
+      }
+      .head-card {
+        align-items: flex-start;
+        margin-bottom: 0;
+        padding: 14px;
+      }
+      .head-card div {
+        display: grid;
+        gap: 3px;
       }
       .person-card.inline {
         padding: 0;
@@ -343,8 +461,8 @@ export class PickerDialogComponent {
         width: 40px;
         height: 40px;
         border-radius: 999px;
-        background: #dbeafe;
-        color: #1d4ed8;
+        background: var(--dept-primary-soft);
+        color: var(--dept-primary);
         font-weight: 800;
       }
       .member-table {
@@ -373,8 +491,8 @@ export class PickerDialogComponent {
         width: fit-content;
         padding: 5px 10px;
         border-radius: 999px;
-        background: #dcfce7;
-        color: #166534;
+        background: var(--dept-success-soft);
+        color: var(--dept-success);
         font-weight: 800;
         font-size: 12px;
       }
@@ -387,12 +505,25 @@ export class PickerDialogComponent {
         justify-content: flex-end;
         gap: 4px;
       }
+      .action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .action-row button {
+        min-width: 118px;
+      }
+      .members-head button,
+      .head-panel > button {
+        min-height: 40px;
+        white-space: nowrap;
+      }
       .empty-state {
         display: grid;
         place-items: center;
         gap: 8px;
         padding: 42px 16px;
-        color: #64748b;
+        color: var(--dept-muted);
         text-align: center;
       }
       .empty-state.compact {
@@ -401,14 +532,14 @@ export class PickerDialogComponent {
         border-radius: 8px;
         margin-bottom: 14px;
       }
-      .empty-state mat-icon {
-        color: #94a3b8;
-      }
       @media (max-width: 980px) {
         .layout,
-        .hero {
+        .department-hero {
           grid-template-columns: 1fr;
           display: grid;
+        }
+        .hero-stats {
+          grid-template-columns: 1fr;
         }
         .member-row {
           grid-template-columns: 1fr;
@@ -425,6 +556,7 @@ export class DepartmentDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly departmentService = inject(DepartmentService);
   private readonly employeeService = inject(EmployeeService);
+  private readonly errors = inject(ErrorHandlerService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
 
@@ -436,6 +568,10 @@ export class DepartmentDetailComponent {
   readonly memberUserIds = computed(
     () => new Set(this.members().map((member) => member.appUserId || member.id)),
   );
+  readonly visibleMembers = computed(() => {
+    const headIds = this.headIdentitySet();
+    return this.members().filter((member) => !this.employeeMatches(member, headIds));
+  });
 
   constructor() {
     void this.load();
@@ -445,16 +581,19 @@ export class DepartmentDetailComponent {
     const dept = this.department();
     if (!dept) return;
 
+    const employees = await firstValueFrom(this.employeeService.getAll()).catch((error) => {
+      this.showError(error, 'Employees could not be loaded.');
+      return [];
+    });
     const selectedUserId = await this.pickEmployee({
       title: 'Assign Department Head',
       label: 'Employee',
-      employees: this.members(),
-      emptyText:
-        'No employees in this department. Add employees before assigning a department head.',
+      employees,
+      emptyText: 'No employees are available to assign as department head.',
     });
     if (!selectedUserId) return;
 
-    const selectedMember = this.members().find((m) => (m.appUserId || m.id) === selectedUserId);
+    const selectedMember = employees.find((m) => (m.appUserId || m.id) === selectedUserId);
     const userId = selectedMember?.appUserId || selectedMember?.id || selectedUserId;
     await this.runMutation(
       () => this.departmentService.assignHead(dept.id, userId),
@@ -487,7 +626,10 @@ export class DepartmentDetailComponent {
     const dept = this.department();
     if (!dept) return;
 
-    const employees = await firstValueFrom(this.employeeService.getAll()).catch(() => []);
+    const employees = await firstValueFrom(this.employeeService.getAll()).catch((error) => {
+      this.showError(error, 'Employees could not be loaded.');
+      return [];
+    });
     const available = employees.filter(
       (employee) => !this.memberUserIds().has(employee.appUserId || employee.id),
     );
@@ -558,12 +700,15 @@ export class DepartmentDetailComponent {
       this.snackBar.open(success, 'Dismiss', { duration: 2500 });
       await this.load(false);
     } catch (error: any) {
-      this.snackBar.open(error?.error?.title || 'Department update failed.', 'Dismiss', {
-        duration: 4000,
-      });
+      this.showError(error, 'Department update failed.');
     } finally {
       this.isSaving.set(false);
     }
+  }
+
+  private showError(error: unknown, fallback: string): void {
+    const parsed = this.errors.parseHttpError(error as any);
+    this.snackBar.open(parsed.generalMessage || fallback, 'Dismiss', { duration: 4000 });
   }
 
   private async load(showSpinner = true): Promise<void> {
@@ -599,5 +744,19 @@ export class DepartmentDetailComponent {
     }
 
     this.isLoading.set(false);
+  }
+
+  private headIdentitySet(): Set<string> {
+    const ids = new Set<string>();
+    const deptHeadId = this.department()?.departmentHeadId;
+    const head = this.departmentHead();
+    if (deptHeadId) ids.add(deptHeadId);
+    if (head?.id) ids.add(head.id);
+    if (head?.appUserId) ids.add(head.appUserId);
+    return ids;
+  }
+
+  private employeeMatches(employee: EmployeeListResponse, ids: Set<string>): boolean {
+    return ids.has(employee.id) || ids.has(employee.appUserId);
   }
 }

@@ -27,7 +27,7 @@ export class DepartmentService extends ApiService {
     return this.put(`/departments/${targetDepartmentId ?? deptId}/move-user`, { userId: employeeId });
   }
   assignHead(deptId: string, employeeId: string): Observable<unknown> { return this.put(`/departments/${deptId}/assign-head`, { userId: employeeId }); }
-  removeHead(deptId: string): Observable<unknown> { return this.put(`/departments/${deptId}/assign-head`, { userId: null }); }
+  removeHead(deptId: string): Observable<unknown> { return this.put(`/departments/${deptId}/unassign-head`, {}); }
 
   private normalizeDepartment(source: unknown): DepartmentResponse {
     const head = this.field<unknown>(source, 'departmentHead', 'head');

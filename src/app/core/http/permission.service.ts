@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, tap } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { map } from 'rxjs/operators';
 import {
   DenyPermissionRequest,
@@ -30,8 +31,19 @@ export class PermissionService extends ApiService {
   getMyEffective(): Observable<EffectivePermissionsResponse> {
     return this.get<unknown>('/auth/me/permissions').pipe(map(response => this.normalizeEffective(this.unwrap(response))));
   }
-  assignToRole(roleId: string, permissionName: string): Observable<unknown> { return this.post(`/permissions/${roleId}`, { permissionName }); }
-  removeFromRole(roleId: string, permissionName: string): Observable<unknown> { return this.delete(`/permissions/${roleId}`, { permissionName }); }
+  assignToRole(roleId: string, permissionName: string): Observable<unknown> {
+    const body = { permissionName };
+    return this.post(`/permissions/${roleId}`, body).pipe(
+      catchError(() => this.post(`/permissions/${roleId}/create`, body)),
+    );
+  }
+
+  removeFromRole(roleId: string, permissionName: string): Observable<unknown> {
+    const body = { permissionName };
+    return this.delete(`/permissions/${roleId}`, body).pipe(
+      catchError(() => this.delete(`/permissions/${roleId}/delete`, body)),
+    );
+  }
 
   grant(req: GrantPermissionRequest): Observable<unknown> {
     return this.post('/permissions/grant', req).pipe(tap(() => this.refreshSelf(req.targetUserId)));

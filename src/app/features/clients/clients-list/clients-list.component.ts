@@ -3,9 +3,6 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { firstValueFrom } from 'rxjs';
@@ -23,30 +20,26 @@ import { AddClientDialogComponent } from '../add-client-dialog/add-client-dialog
     ReactiveFormsModule,
     MatButtonModule,
     MatDialogModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
     MatProgressSpinnerModule,
     HasPermissionDirective,
   ],
   template: `
     <header class="hero">
       <div>
+        <p class="eyebrow">Accounts</p>
         <h1>Clients</h1>
         <p>Client accounts, contact details, and account status.</p>
       </div>
       <button mat-raised-button color="primary" *appHasPermission="PERMISSIONS.clients.create" (click)="openAdd()">
-        <mat-icon>add</mat-icon>
         Add Client
       </button>
     </header>
 
     <section class="toolbar">
-      <mat-form-field appearance="outline">
-        <mat-label>Search clients</mat-label>
-        <mat-icon matPrefix>search</mat-icon>
-        <input matInput [formControl]="searchControl" placeholder="Name, email, username, phone">
-      </mat-form-field>
+      <label class="field search-field">
+        <span>Search clients</span>
+        <input [formControl]="searchControl" placeholder="Name, email, username, phone">
+      </label>
       <div class="stats">
         <span><strong>{{ clients().length }}</strong>Total</span>
         <span><strong>{{ activeCount() }}</strong>Active</span>
@@ -70,7 +63,7 @@ import { AddClientDialogComponent } from '../add-client-dialog/add-client-dialog
             </button>
           } @empty {
             <div class="empty-state">
-              <mat-icon>person_search</mat-icon>
+              <span class="empty-mark">0</span>
               <strong>No clients found</strong>
               <span>Try a different search or add a new client.</span>
             </div>
@@ -97,21 +90,18 @@ import { AddClientDialogComponent } from '../add-client-dialog/add-client-dialog
 
             <div class="actions">
               <button mat-stroked-button *appHasPermission="PERMISSIONS.clients.update" (click)="openEdit(client)">
-                <mat-icon>edit</mat-icon>
                 Edit
               </button>
               <button mat-stroked-button *appHasPermission="PERMISSIONS.clients.deactivate" [disabled]="isSaving()" (click)="toggleStatus(client)">
-                <mat-icon>{{ client.isActive ? 'block' : 'check_circle' }}</mat-icon>
                 {{ client.isActive ? 'Deactivate' : 'Activate' }}
               </button>
               <button mat-stroked-button color="warn" *appHasPermission="PERMISSIONS.clients.delete" [disabled]="isSaving()" (click)="deleteClient(client)">
-                <mat-icon>delete</mat-icon>
                 Delete
               </button>
             </div>
           } @else {
             <div class="empty-state tall">
-              <mat-icon>contacts</mat-icon>
+              <span class="empty-mark">CL</span>
               <strong>Select a client</strong>
               <span>Client details and actions will appear here.</span>
             </div>
@@ -122,20 +112,30 @@ import { AddClientDialogComponent } from '../add-client-dialog/add-client-dialog
   `,
   styles: [`
     :host { display: block; color: #172033; }
-    .hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; padding: 22px; margin-bottom: 16px; border: 1px solid #dbe5ef; border-radius: 8px; background: linear-gradient(135deg, #fff 0%, #f4f8fb 100%); }
+    .hero { position: relative; overflow: hidden; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; padding: clamp(22px, 4vw, 34px); margin-bottom: 16px; border: 1px solid rgba(255,255,255,.14); border-radius: 8px; background: linear-gradient(135deg, rgba(2,13,24,.96), rgba(4,22,39,.92)), url("data:image/svg+xml,%3Csvg width='900' height='420' viewBox='0 0 900 420' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='900' height='420' fill='%23041627'/%3E%3Cg stroke='%236cd3f7' opacity='.16'%3E%3Cpath d='M0 90h900M0 180h900M0 270h900M0 360h900M120 0v420M240 0v420M360 0v420M480 0v420M600 0v420M720 0v420M840 0v420'/%3E%3C/g%3E%3C/svg%3E"); background-size: cover; box-shadow: 0 22px 70px rgba(4,22,39,.16); }
+    .hero::after { content: ""; position: absolute; right: -130px; bottom: -170px; width: 430px; height: 430px; background: radial-gradient(circle, rgba(108,211,247,.24), transparent 62%); }
+    .hero > * { position: relative; z-index: 1; }
+    .eyebrow { margin: 0 0 5px; color: #6cd3f7; font-size: 12px; font-weight: 900; text-transform: uppercase; }
     h1, h2 { margin: 0; letter-spacing: 0; }
-    h1 { font-size: 30px; } p { margin: 6px 0 0; color: #64748b; }
+    h1 { color: #fff; font-size: clamp(30px, 4vw, 44px); line-height: 1.04; } p { margin: 6px 0 0; color: #64748b; }
+    .hero p { color: #c9d5e4; }
+    .hero button { min-height: 44px; border-radius: 8px; font: 900 14px/1 Manrope, sans-serif; letter-spacing: 0; }
     .toolbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 16px; }
-    .toolbar mat-form-field { width: min(460px, 100%); }
+    .search-field { width: min(460px, 100%); }
+    .field { display: grid; gap: 8px; color: #041627; }
+    .field span { color: #344054; font-size: 13px; font-weight: 800; }
+    .field input { width: 100%; height: 50px; border: 1px solid #d7dee8; border-radius: 8px; background: #fff; color: #041627; font: 600 15px/1.2 'IBM Plex Sans', 'IBM Plex Sans Arabic', sans-serif; outline: none; padding: 0 14px; transition: border-color .15s ease, box-shadow .15s ease; }
+    .field input::placeholder { color: #9aa4b2; font-weight: 500; }
+    .field input:focus { border-color: #0073e6; box-shadow: 0 0 0 3px rgba(0,115,230,.12); }
     .stats { display: flex; gap: 10px; }
-    .stats span { min-width: 92px; display: grid; gap: 2px; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; color: #64748b; font-size: 12px; }
+    .stats span { min-width: 92px; display: grid; gap: 2px; padding: 10px 12px; border: 1px solid #e1e7ef; border-radius: 8px; background: #fff; color: #64748b; font-size: 12px; box-shadow: 0 8px 24px rgba(4,22,39,.05); }
     .stats strong { color: #172033; font-size: 20px; }
     .workspace { display: grid; grid-template-columns: minmax(320px, 420px) 1fr; gap: 18px; align-items: start; }
-    .client-list, .detail { background: #fff; border: 1px solid #dbe5ef; border-radius: 8px; box-shadow: 0 10px 30px rgba(15, 23, 42, .04); overflow: hidden; }
+    .client-list, .detail { background: #fff; border: 1px solid #e1e7ef; border-radius: 8px; box-shadow: 0 8px 24px rgba(4,22,39,.05); overflow: hidden; }
     .client-row { width: 100%; display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; padding: 14px; border: 0; border-bottom: 1px solid #eef2f7; background: #fff; color: inherit; text-align: left; cursor: pointer; }
     .client-row:hover, .client-row.selected { background: #f8fafc; }
-    .client-row.selected { box-shadow: inset 3px 0 #2563eb; }
-    .avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; background: #dbeafe; color: #1d4ed8; font-weight: 800; }
+    .client-row.selected { box-shadow: inset 3px 0 #6cd3f7; }
+    .avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; background: #e0f5fe; color: #006e8c; font-weight: 900; }
     .avatar.large { width: 64px; height: 64px; font-size: 20px; }
     .identity { min-width: 0; } .identity strong, .identity small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     small, dt, .empty-state span { color: #64748b; }
@@ -144,13 +144,14 @@ import { AddClientDialogComponent } from '../add-client-dialog/add-client-dialog
     .detail { padding: 18px; }
     .detail-head { display: flex; gap: 14px; align-items: center; padding-bottom: 16px; border-bottom: 1px solid #eef2f7; }
     .info-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
-    .info-grid div { padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+    .info-grid div { padding: 12px; border: 1px solid #e1e7ef; border-radius: 8px; background: #f8fafc; }
     .info-grid .wide { grid-column: 1 / -1; }
     dt { font-size: 12px; font-weight: 800; text-transform: uppercase; } dd { margin: 5px 0 0; }
     .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .actions button, .hero button { min-height: 40px; }
     .empty-state, .loading { display: grid; place-items: center; gap: 8px; padding: 44px 16px; color: #64748b; text-align: center; }
     .empty-state.tall { min-height: 360px; }
-    .empty-state mat-icon { color: #94a3b8; }
+    .empty-mark { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 8px; background: #eef2f7; color: #64748b; font-size: 12px; font-weight: 900; }
     @media (max-width: 960px) { .hero, .toolbar, .workspace { display: grid; grid-template-columns: 1fr; } .stats { flex-wrap: wrap; } }
     @media (max-width: 620px) { .client-row, .info-grid { grid-template-columns: 1fr; } }
   `],

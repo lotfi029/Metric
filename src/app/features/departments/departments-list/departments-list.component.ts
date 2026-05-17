@@ -4,9 +4,6 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { firstValueFrom } from 'rxjs';
@@ -19,10 +16,10 @@ import { HasPermissionDirective } from '../../../shared/directives';
 @Component({
   selector: 'app-department-form-dialog',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressSpinnerModule],
+  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, MatDialogModule, MatProgressSpinnerModule],
   template: `
     <header class="dialog-head">
-      <span class="dialog-icon"><mat-icon>add_business</mat-icon></span>
+      <span class="dialog-icon">DP</span>
       <div>
         <h2 mat-dialog-title>Create Department</h2>
         <p>Add a department that employees can be assigned to.</p>
@@ -30,16 +27,20 @@ import { HasPermissionDirective } from '../../../shared/directives';
     </header>
     <mat-dialog-content>
       <form [formGroup]="form" class="form">
-        <mat-form-field appearance="outline">
-          <mat-label>Department name</mat-label>
-          <input matInput formControlName="name" autocomplete="off" placeholder="e.g. Design">
-          <mat-error>{{ controlError('name') }}</mat-error>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Description</mat-label>
-          <textarea matInput rows="3" formControlName="description" placeholder="Describe the department purpose"></textarea>
-          <mat-error>{{ controlError('description') }}</mat-error>
-        </mat-form-field>
+        <label class="field">
+          <span>Department name</span>
+          <input formControlName="name" autocomplete="off" placeholder="e.g. Design">
+          @if (controlError('name')) {
+            <small>{{ controlError('name') }}</small>
+          }
+        </label>
+        <label class="field">
+          <span>Description</span>
+          <textarea rows="3" formControlName="description" placeholder="Describe the department purpose"></textarea>
+          @if (controlError('description')) {
+            <small>{{ controlError('description') }}</small>
+          }
+        </label>
       </form>
       @if (errorMessage()) {
         <p class="error">{{ errorMessage() }}</p>
@@ -49,19 +50,25 @@ import { HasPermissionDirective } from '../../../shared/directives';
       <button mat-button mat-dialog-close [disabled]="isSaving()">Cancel</button>
       <button mat-raised-button color="primary" (click)="submit()" [disabled]="form.invalid || isSaving()">
         <mat-spinner diameter="18" [class.is-hidden]="!isSaving()" />
-        <mat-icon [class.is-hidden]="isSaving()">add</mat-icon>
         <span>{{ isSaving() ? 'Creating...' : 'Create department' }}</span>
       </button>
     </mat-dialog-actions>
   `,
   styles: [`
     .dialog-head { display: flex; align-items: center; gap: 12px; padding: 20px 24px 4px; }
-    .dialog-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 8px; background: #dbeafe; color: #1d4ed8; }
+    .dialog-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 8px; background: #e0f5fe; color: #006e8c; font: 900 12px/1 Manrope, sans-serif; }
     h2 { margin: 0; padding: 0; color: #172033; }
     p { margin: 4px 0 0; color: #64748b; }
     mat-dialog-content { width: 100%; max-width: 100%; padding-top: 14px !important; overflow-x: hidden; }
     .form { display: grid; gap: 14px; }
-    mat-form-field { width: 100%; }
+    .field { display: grid; gap: 8px; color: #041627; }
+    .field span { color: #344054; font-size: 13px; font-weight: 800; }
+    .field input, .field textarea { width: 100%; border: 1px solid #d7dee8; border-radius: 8px; background: #fff; color: #041627; font: 600 15px/1.2 'IBM Plex Sans', 'IBM Plex Sans Arabic', sans-serif; outline: none; padding: 0 14px; transition: border-color .15s ease, box-shadow .15s ease; }
+    .field input { height: 50px; }
+    .field textarea { min-height: 94px; padding-top: 13px; resize: vertical; }
+    .field input::placeholder, .field textarea::placeholder { color: #9aa4b2; font-weight: 500; }
+    .field input:focus, .field textarea:focus { border-color: #0073e6; box-shadow: 0 0 0 3px rgba(0,115,230,.12); }
+    .field small { color: #ba1a1a; font-size: 12px; font-weight: 700; }
     .error { margin: 0; padding: 10px 12px; border-radius: 8px; background: #fee2e2; color: #991b1b; font-weight: 700; }
     mat-dialog-actions button { min-height: 40px; }
     mat-spinner { display: inline-block; margin-right: 8px; }
@@ -117,15 +124,15 @@ export class DepartmentFormDialogComponent {
 @Component({
   selector: 'app-departments-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButtonModule, MatDialogModule, MatIconModule, HasPermissionDirective],
+  imports: [CommonModule, RouterLink, MatButtonModule, MatDialogModule, HasPermissionDirective],
   template: `
     <header class="hero">
       <div>
+        <p class="eyebrow">Organization</p>
         <h1>Departments</h1>
         <p>Manage teams, heads, and membership movement across the organization.</p>
       </div>
       <button mat-raised-button color="primary" *appHasPermission="PERMISSIONS.departments.create" (click)="openCreate()">
-        <mat-icon>add_business</mat-icon>
         Create Department
       </button>
     </header>
@@ -140,7 +147,7 @@ export class DepartmentFormDialogComponent {
       @for (dept of departments(); track dept.id) {
         <a class="card" [routerLink]="['/departments', dept.id]">
           <div class="card-top">
-            <span class="dept-icon"><mat-icon>corporate_fare</mat-icon></span>
+            <span class="dept-icon">{{ dept.name.slice(0, 2).toUpperCase() }}</span>
             @if (dept.departmentHead || dept.departmentHeadId) {
               <span class="badge ok">Head assigned</span>
             } @else {
@@ -153,7 +160,7 @@ export class DepartmentFormDialogComponent {
         </a>
       } @empty {
         <div class="empty-state">
-          <mat-icon>domain_disabled</mat-icon>
+          <span class="dept-icon">0</span>
           <strong>No departments found</strong>
           <span>Create your first department to start assigning employees.</span>
         </div>
@@ -162,16 +169,20 @@ export class DepartmentFormDialogComponent {
   `,
   styles: [`
     :host { display: block; color: #172033; }
-    .hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; padding: 22px; margin-bottom: 16px; border: 1px solid #dbe5ef; border-radius: 8px; background: linear-gradient(135deg, #fff 0%, #f4f8fb 100%); }
-    h1 { margin: 0; font-size: 30px; letter-spacing: 0; } p { color: #64748b; margin: 6px 0 0; }
+    .hero { position: relative; overflow: hidden; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; padding: clamp(22px, 4vw, 34px); margin-bottom: 16px; border: 1px solid rgba(255,255,255,.14); border-radius: 8px; background: linear-gradient(135deg, rgba(2,13,24,.96), rgba(4,22,39,.92)), url("data:image/svg+xml,%3Csvg width='900' height='420' viewBox='0 0 900 420' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='900' height='420' fill='%23041627'/%3E%3Cg stroke='%236cd3f7' opacity='.16'%3E%3Cpath d='M0 90h900M0 180h900M0 270h900M0 360h900M120 0v420M240 0v420M360 0v420M480 0v420M600 0v420M720 0v420M840 0v420'/%3E%3C/g%3E%3C/svg%3E"); background-size: cover; box-shadow: 0 22px 70px rgba(4,22,39,.16); }
+    .hero::after { content: ""; position: absolute; right: -130px; bottom: -170px; width: 430px; height: 430px; background: radial-gradient(circle, rgba(108,211,247,.24), transparent 62%); }
+    .hero > * { position: relative; z-index: 1; }
+    .eyebrow { margin: 0 0 5px; color: #6cd3f7; font-size: 12px; font-weight: 900; text-transform: uppercase; }
+    h1 { margin: 0; color: #fff; font-size: clamp(30px, 4vw, 44px); line-height: 1.04; letter-spacing: 0; } p { color: #c9d5e4; margin: 6px 0 0; }
+    .hero button { min-height: 44px; border-radius: 8px; font: 900 14px/1 Manrope, sans-serif; letter-spacing: 0; }
     .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
-    .summary article { display: grid; gap: 3px; padding: 14px; border: 1px solid #dbe5ef; border-radius: 8px; background: #fff; }
+    .summary article { display: grid; gap: 3px; padding: 14px; border: 1px solid #e1e7ef; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgba(4,22,39,.05); }
     .summary strong { font-size: 26px; } .summary span, .card span, .card small, .empty-state span { color: #64748b; }
     .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
-    .card { display: grid; gap: 10px; padding: 16px; color: #172033; text-decoration: none; border: 1px solid #dbe5ef; border-radius: 8px; background: #fff; box-shadow: 0 10px 30px rgba(15, 23, 42, .04); transition: transform .15s ease, box-shadow .15s ease; }
-    .card:hover { transform: translateY(-2px); box-shadow: 0 16px 34px rgba(15, 23, 42, .08); }
+    .card { display: grid; gap: 10px; min-height: 178px; padding: 16px; color: #172033; text-decoration: none; border: 1px solid #e1e7ef; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgba(4,22,39,.05); transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
+    .card:hover { transform: translateY(-2px); border-color: #b9e9f8; box-shadow: 0 16px 34px rgba(4,22,39,.09); }
     .card-top { display: flex; justify-content: space-between; align-items: center; }
-    .dept-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 8px; background: #dbeafe; color: #1d4ed8; }
+    .dept-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 8px; background: #e0f5fe; color: #006e8c; font: 900 13px/1 Manrope, sans-serif; }
     .badge { padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; }
     .badge.ok { background: #dcfce7; color: #166534; } .badge.warn { background: #fef3c7; color: #92400e; }
     .empty-state { grid-column: 1 / -1; display: grid; place-items: center; gap: 8px; padding: 44px 16px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #fff; text-align: center; }
