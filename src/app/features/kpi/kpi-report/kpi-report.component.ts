@@ -21,8 +21,8 @@ export class KpiReportComponent implements OnInit {
   ngOnInit() {
     this.route.params.subscribe(params => {
       const id = params['id'];
-      const found = MOCK_KPIs.find(k => k.employeeId === id) || MOCK_KPIs[0];
-      const employee = MOCK_EMPLOYEES.find(e => e.id === found.employeeId) || MOCK_EMPLOYEES[0];
+      const found = MOCK_KPIs.find(k => k.employeeId === id) ?? MOCK_KPIs.at(0) ?? null;
+      const employee = found ? MOCK_EMPLOYEES.find(e => e.id === found.employeeId) ?? null : null;
       this.kpi.set(found);
       this.emp.set(employee);
     });

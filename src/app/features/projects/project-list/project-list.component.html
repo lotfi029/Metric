@@ -20,11 +20,10 @@
     <div>
       <label class="text-label text-[#8192a7] block mb-3">Filter by Stage</label>
       <select
-        [(ngModel)]="selectedStage"
-        (change)="onFilterChange()"
+        [formControl]="selectedStageControl"
         class="input-base w-full text-[#041627]"
       >
-        <option [value]="null">All Stages</option>
+        <option [ngValue]="null">All Stages</option>
         <option *ngFor="let stage of stages" [value]="stage.number">
           {{ stage.number }}. {{ stage.name }}
         </option>
@@ -35,11 +34,10 @@
     <div>
       <label class="text-label text-[#8192a7] block mb-3">Filter by Status</label>
       <select
-        [(ngModel)]="selectedStatus"
-        (change)="onFilterChange()"
+        [formControl]="selectedStatusControl"
         class="input-base w-full text-[#041627]"
       >
-        <option [value]="null">All Statuses</option>
+        <option [ngValue]="null">All Statuses</option>
         <option *ngFor="let status of statuses" [value]="status">
           {{ status }}
         </option>
@@ -50,11 +48,10 @@
     <div>
       <label class="text-label text-[#8192a7] block mb-3">Filter by Office</label>
       <select
-        [(ngModel)]="selectedOffice"
-        (change)="onFilterChange()"
+        [formControl]="selectedOfficeControl"
         class="input-base w-full text-[#041627]"
       >
-        <option [value]="null">All Offices</option>
+        <option [ngValue]="null">All Offices</option>
         <option *ngFor="let office of offices" [value]="office">
           {{ office }}
         </option>
@@ -87,6 +84,7 @@
             [class.bg-[#fbbc04]]="project.status === 'On-Hold'">
             {{ project.status }}
           </span>
+      </div>
 
       <!-- Progress -->
       <div class="mb-4">

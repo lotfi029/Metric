@@ -1,1 +1,4 @@
 /* Sidebar styles */
+:host {
+  transition: width 150ms ease, transform 150ms ease;
+}

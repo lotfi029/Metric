@@ -40,19 +40,16 @@
     <div class="col-span-5 space-y-4">
       <!-- Filters -->
       <div class="bg-white rounded-xl p-4 border border-[#eceef0] space-y-3">
-        <input type="text" [(ngModel)]="searchQuery"
+        <input type="text" [formControl]="searchControl"
                placeholder="Search name, email, city..."
-               (ngModelChange)="searchQuery.set($event)"
                class="input-base w-full text-[#041627]" />
         <div class="grid grid-cols-2 gap-2">
-          <select [(ngModel)]="statusFilter"
-                  (ngModelChange)="statusFilter.set($event)"
+          <select [formControl]="statusControl"
                   class="input-base text-[#041627] text-sm">
             <option value="">All Status</option>
             <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
           </select>
-          <select [(ngModel)]="typeFilter"
-                  (ngModelChange)="typeFilter.set($event)"
+          <select [formControl]="typeControl"
                   class="input-base text-[#041627] text-sm">
             <option value="">All Types</option>
             <option *ngFor="let t of types" [value]="t">{{ t }}</option>

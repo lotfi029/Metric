@@ -57,7 +57,12 @@ export class EmployeesListComponent {
   }
 
   openAdd(): void {
-    this.dialog.open(AddEmployeeDialogComponent).afterClosed().subscribe(result => {
+    this.dialog.open(AddEmployeeDialogComponent, {
+      autoFocus: false,
+      width: 'min(1080px, calc(100vw - 32px))',
+      maxWidth: 'calc(100vw - 32px)',
+      maxHeight: 'calc(100vh - 32px)',
+    }).afterClosed().subscribe(result => {
       if (result?.success) void this.load();
     });
   }

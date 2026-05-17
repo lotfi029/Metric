@@ -1,56 +1,90 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { Component, computed, inject, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { filter } from 'rxjs';
 import { AuthStore } from '../../../core/auth/auth.store';
 import { TranslationService } from '../translation.service';
 
 @Component({
   selector: 'app-topbar',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, RouterLink],
   template: `
-    <header class="topbar">
-      <button mat-icon-button class="mobile-menu" type="button"><mat-icon>menu</mat-icon></button>
-      <div class="context">
-        <strong>Workspace</strong>
-        <span>Permission-scoped operations</span>
+    <header class="sticky top-0 z-40 h-16 bg-white border-b border-[#e8eaed] px-4 md:px-8 flex items-center gap-4 flex-shrink-0">
+      <button type="button" class="md:hidden btn-ghost px-2" aria-label="Open navigation">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+
+      <div class="min-w-0">
+        <p class="font-['Manrope'] font-bold text-[#101828] leading-tight">{{ pageTitle() }}</p>
+        <p class="hidden md:block text-xs text-[#9aa4b2]">{{ breadcrumb() }}</p>
       </div>
-      <div class="spacer"></div>
-      <button mat-button class="lang" type="button" (click)="translation.toggle()">{{ translation.lang().toUpperCase() }}</button>
-      <button mat-icon-button type="button" aria-label="Notifications"><mat-icon>notifications</mat-icon></button>
-      <div class="user">
-        <span class="avatar">{{ initials() }}</span>
-        <span class="name">{{ authStore.user()?.userName }}</span>
+
+      <div class="flex-1"></div>
+
+      <button type="button" class="btn-ghost px-2" aria-label="Search">
+        <span class="material-symbols-outlined">search</span>
+      </button>
+      <button type="button" class="btn-secondary px-3 py-1.5" (click)="translation.toggle()">
+        {{ translation.lang().toUpperCase() }}
+      </button>
+      <button type="button" class="relative btn-ghost px-2" aria-label="Notifications">
+        <span class="material-symbols-outlined">notifications</span>
+        <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#ba1a1a]"></span>
+      </button>
+      <div class="h-8 w-px bg-[#e8eaed]"></div>
+
+      <div class="relative">
+        <button type="button" class="flex items-center gap-2" (click)="menuOpen.set(!menuOpen())">
+          <span class="w-9 h-9 rounded-full grid place-items-center bg-[#e0f5fe] text-[#003547] text-xs font-bold">{{ initials() }}</span>
+          <span class="hidden lg:inline text-sm font-semibold text-[#344054]">{{ authStore.user()?.userName || 'User' }}</span>
+          <span class="material-symbols-outlined text-[#9aa4b2] text-lg">expand_more</span>
+        </button>
+        @if (menuOpen()) {
+          <div class="absolute right-0 mt-2 w-48 card p-1 shadow-lg">
+            <a routerLink="/profile" class="block px-3 py-2 rounded-lg text-sm text-[#344054] hover:bg-[#f8f9fa]" (click)="menuOpen.set(false)">My Profile</a>
+            <button type="button" class="block w-full text-left px-3 py-2 rounded-lg text-sm text-[#344054] hover:bg-[#f8f9fa]">Settings</button>
+            <div class="my-1 border-t border-[#e8eaed]"></div>
+            <button type="button" class="block w-full text-left px-3 py-2 rounded-lg text-sm text-[#ba1a1a] hover:bg-[#ffdad6]" (click)="logout()">Sign out</button>
+          </div>
+        }
       </div>
-      <button mat-icon-button type="button" aria-label="Logout" (click)="logout()"><mat-icon>logout</mat-icon></button>
     </header>
   `,
-  styles: [`
-    .topbar { position: sticky; top: 0; z-index: 10; height: 64px; display: flex; align-items: center; gap: 10px; padding: 0 22px; border-bottom: 1px solid #dbe5ef; background: rgba(255,255,255,.92); backdrop-filter: blur(12px); box-sizing: border-box; }
-    .context { display: grid; gap: 2px; line-height: 1.1; }
-    .context strong { color: #172033; }
-    .context span { color: #64748b; font-size: 12px; }
-    .spacer { flex: 1; }
-    .lang { border: 1px solid #e2e8f0; border-radius: 8px; min-width: 54px; }
-    .user { display: flex; align-items: center; gap: 10px; color: #0f172a; font-weight: 600; }
-    .avatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; background: #dbeafe; color: #1d4ed8; font-size: 13px; font-weight: 800; }
-    .mobile-menu { display: none; }
-    @media (max-width: 720px) { .mobile-menu { display: inline-flex; } .name, .context { display: none; } }
-  `],
 })
 export class TopbarComponent {
   readonly authStore = inject(AuthStore);
   readonly translation = inject(TranslationService);
+  readonly menuOpen = signal(false);
   private readonly router = inject(Router);
-  readonly initials = computed(() => {
-    const name = this.authStore.user()?.userName ?? '';
-    return name.split(/[.\s_-]+/).filter(Boolean).slice(0, 2).map(part => part[0]?.toUpperCase()).join('') || 'U';
-  });
+  private readonly currentUrl = signal(this.router.url);
+
+  readonly pageTitle = computed(() => this.titleFromUrl(this.currentUrl()));
+  readonly breadcrumb = computed(() => `DMS / ${this.currentUrl().split('/').filter(Boolean).map(this.formatSegment).join(' / ') || 'Dashboard'}`);
+  readonly initials = computed(() => this.authStore.user()?.userName
+    ?.split(/[.\s_-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0]?.toUpperCase())
+    .join('') || 'U');
+
+  constructor() {
+    this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(event => {
+      this.currentUrl.set(event.urlAfterRedirects);
+    });
+  }
 
   async logout(): Promise<void> {
     await this.authStore.logout();
+    this.menuOpen.set(false);
     await this.router.navigate(['/login']);
+  }
+
+  private titleFromUrl(url: string): string {
+    return this.formatSegment(url.split('/').filter(Boolean).at(-1) ?? 'dashboard');
+  }
+
+  private formatSegment(segment: string): string {
+    return segment.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
   }
 }

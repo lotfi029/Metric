@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserService } from '@core/services/user.service';
 import { RoleService } from '@core/services/role.service';
@@ -34,7 +34,7 @@ export class UserDetailsComponent implements OnInit {
     this.userForm = this.fb.group({
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
-      email: [''],
+      email: [{ value: '', disabled: true }],
       roleId: [''],
       twoFactorEnabled: [false],
       apiAccessEnabled: [false]

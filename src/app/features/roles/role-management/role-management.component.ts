@@ -79,7 +79,17 @@ export class RoleManagementComponent implements OnInit {
       }
       grouped[p.group].push(p);
     });
+    Object.values(grouped).forEach(group => group.sort((a, b) => a.displayName.localeCompare(b.displayName)));
     this.permissionsByGroup.set(grouped);
+  }
+
+  sortedPermissionGroups(): string[] {
+    return Object.keys(this.permissionsByGroup()).sort();
+  }
+
+  activeCountInGroup(group: string): number {
+    return (this.permissionsByGroup()[group] ?? [])
+      .filter(permission => this.isPermissionAssigned(permission.id)).length;
   }
 
   selectRole(role: RoleResponse) {

@@ -1,7 +1,8 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { debounceTime, merge } from 'rxjs';
 import { ProjectService } from '../../../core/services/project.service';
 import { ProjectListItem } from '../../../core/models/project.model';
 import { ToastService } from '../../../core/services/toast.service';
@@ -9,7 +10,7 @@ import { ToastService } from '../../../core/services/toast.service';
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './project-list.component.html',
   styleUrls: ['./project-list.component.css']
 })
@@ -17,10 +18,9 @@ export class ProjectListComponent implements OnInit {
   projects = signal<ProjectListItem[]>([]);
   isLoading = signal(true);
 
-  // Filter signals
-  selectedStage = signal<number | null>(null);
-  selectedStatus = signal<string | null>(null);
-  selectedOffice = signal<string | null>(null);
+  selectedStageControl = new FormControl<number | null>(null);
+  selectedStatusControl = new FormControl<string | null>(null);
+  selectedOfficeControl = new FormControl<string | null>(null);
 
   stages = Array.from({ length: 8 }, (_, i) => ({ number: i + 1, name: this.getStageName(i + 1) }));
   statuses = ['Active', 'Completed', 'On-Hold'];
@@ -33,15 +33,20 @@ export class ProjectListComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    merge(
+      this.selectedStageControl.valueChanges,
+      this.selectedStatusControl.valueChanges,
+      this.selectedOfficeControl.valueChanges
+    ).pipe(debounceTime(100)).subscribe(() => this.loadProjects());
     this.loadProjects();
   }
 
   loadProjects() {
     this.isLoading.set(true);
     const filters: any = {};
-    if (this.selectedStage()) filters.stage = this.selectedStage();
-    if (this.selectedStatus()) filters.status = this.selectedStatus();
-    if (this.selectedOffice()) filters.office = this.selectedOffice();
+    if (this.selectedStageControl.value) filters.stage = this.selectedStageControl.value;
+    if (this.selectedStatusControl.value) filters.status = this.selectedStatusControl.value;
+    if (this.selectedOfficeControl.value) filters.office = this.selectedOfficeControl.value;
 
     this.projectService.getProjects(filters).subscribe({
       next: (data) => {
@@ -82,10 +87,6 @@ export class ProjectListComponent implements OnInit {
       8: '#041627'
     };
     return colors[stage] || '#8192a7';
-  }
-
-  onFilterChange() {
-    this.loadProjects();
   }
 
   viewProject(projectId: string) {

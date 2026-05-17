@@ -1,10 +1,10 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { TopnavComponent } from '../components/topnav/topnav.component';
 import { DetailedUserResponse } from '@core/models/user.model';
-import { MOCK_EMPLOYEES } from '@core/mock/index';
+import { AuthStore } from '@core/auth/auth.store';
 
 @Component({
   selector: 'app-shell',
@@ -24,20 +24,24 @@ import { MOCK_EMPLOYEES } from '@core/mock/index';
   styles: []
 })
 export class ShellComponent implements OnInit {
-  currentUser = signal<DetailedUserResponse | null>(null);
+  private readonly authStore = inject(AuthStore);
+  currentUser = computed<DetailedUserResponse | null>(() => {
+    const user = this.authStore.user();
+    if (!user) return null;
+    const parts = user.userName.split(/[.\s_-]+/).filter(Boolean);
+    return {
+      id: user.userId,
+      firstName: parts[0] ?? user.userName,
+      lastName: parts.slice(1).join(' ') || parts[0] || user.userName,
+      userName: user.userName,
+      email: user.email,
+      isActive: user.isActive,
+      createdAt: '',
+      lastLoginAt: null,
+    } as DetailedUserResponse;
+  });
 
   ngOnInit() {
-    // Use mock employee for current user (emp-001 = Sara Nasser = "manager" account)
-    const currentMock = MOCK_EMPLOYEES[0];
-    this.currentUser.set({
-      id: currentMock.id,
-      firstName: currentMock.firstName,
-      lastName: currentMock.lastName,
-      userName: currentMock.userName,
-      email: currentMock.email,
-      isActive: currentMock.isActive,
-      createdAt: currentMock.createdAt,
-      lastLoginAt: currentMock.lastLoginAt
-    } as DetailedUserResponse);
+    this.authStore.initFromStorage();
   }
 }

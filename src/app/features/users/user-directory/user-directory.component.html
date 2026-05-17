@@ -20,7 +20,7 @@
     <div>
       <label class="label-xs">Search by name, email, or title</label>
       <input 
-        [(ngModel)]="searchQuery"
+        [formControl]="searchControl"
         type="text" 
         placeholder="e.g., Sara, sara@..." 
         class="w-full px-3 py-2 border border-[#eceef0] rounded-lg text-sm focus:ring-2 focus:ring-[#6cd3f7] outline-none"
@@ -31,7 +31,7 @@
     <div>
       <label class="label-xs">Filter by Department</label>
       <select 
-        [(ngModel)]="deptFilter"
+        [formControl]="deptControl"
         class="w-full px-3 py-2 border border-[#eceef0] rounded-lg text-sm focus:ring-2 focus:ring-[#6cd3f7] outline-none"
       >
         <option value="">All Departments</option>
@@ -45,7 +45,7 @@
     <div>
       <label class="label-xs">Filter by Role Level</label>
       <select 
-        [(ngModel)]="roleFilter"
+        [formControl]="roleControl"
         class="w-full px-3 py-2 border border-[#eceef0] rounded-lg text-sm focus:ring-2 focus:ring-[#6cd3f7] outline-none"
       >
         <option value="">All Roles</option>

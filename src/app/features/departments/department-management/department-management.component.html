@@ -15,7 +15,7 @@
 
   <div class="grid grid-cols-12 gap-8">
     <!-- Left Panel - Department Cards -->
-    <div class="col-span-4 max-h-[600px] overflow-y-auto">
+    <div class="col-span-4 overflow-y-auto pr-1" style="max-height: calc(100vh - 200px);">
       <div class="space-y-3">
         <div
           *ngFor="let dept of departments()"
@@ -39,14 +39,16 @@
             {{ dept.description }}
           </p>
           <p class="text-xs" [class.text-[#6cd3f7]]="selectedDept()?.id === dept.id">
-            Members: X
+            @if (selectedDept()?.id === dept.id) {
+              Members: {{ deptUsers().length }}
+            }
           </p>
         </div>
       </div>
     </div>
 
     <!-- Right Panel - Department Details -->
-    <div class="col-span-8 space-y-6" *ngIf="selectedDept(); else noSelection">
+    <div class="col-span-8 space-y-6 overflow-y-auto" style="max-height: calc(100vh - 200px);" *ngIf="selectedDept(); else noSelection">
       <!-- Department Info -->
       <div class="bg-white rounded-xl p-8 card-base">
         <h2 class="text-lg font-['Manrope'] font-bold text-[#041627] mb-6">Department Information</h2>
@@ -100,36 +102,41 @@
         <!-- Add User -->
         <div class="mb-6 space-y-3">
           <div class="flex gap-2">
-            <input
-              [value]="newUserInput()"
-              (input)="onUserInputChange($event)"
-              type="text"
-              placeholder="Enter user ID..."
-              class="input-base flex-1 text-[#041627]"
-            />
+            <select class="input-field flex-1" (change)="selectedUserToAdd.set($any($event.target).value)" [value]="selectedUserToAdd()">
+              <option value="">Select employee to add...</option>
+              @for (user of availableToAdd(); track user.id) {
+                <option [value]="user.id">{{ user.firstName }} {{ user.lastName }} ({{ user.email }})</option>
+              }
+            </select>
             <button
               (click)="addUserToDept()"
+              [disabled]="!selectedUserToAdd()"
               class="btn-primary px-6 py-3"
             >
-              Add User
+              Add
             </button>
           </div>
+          @if (availableToAdd().length === 0 && selectedDept()) {
+            <p class="text-xs text-[#9aa4b2] mt-1">
+              All active employees are already in this department, or no employees exist.
+            </p>
+          }
         </div>
 
         <!-- Users Table -->
         <div class="overflow-x-auto">
           <table class="w-full" *ngIf="deptUsers().length > 0; else noMembers">
-            <thead class="bg-[#e0e3e5] text-[10px] uppercase tracking-widest font-bold text-[#44474c]">
+            <thead>
               <tr>
-                <th class="px-6 py-4 text-left">Name</th>
-                <th class="px-6 py-4 text-left">Email</th>
-                <th class="px-6 py-4 text-left">Status</th>
-                <th class="px-6 py-4 text-center">Actions</th>
+                <th class="th">Name</th>
+                <th class="th">Email</th>
+                <th class="th">Status</th>
+                <th class="th text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let user of deptUsers()" class="border-b border-[#eceef0] hover:bg-[#e6e8ea]">
-                <td class="px-6 py-4">
+              <tr *ngFor="let user of deptUsers()">
+                <td class="td">
                   <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#041627] to-[#1a2b3c] flex items-center justify-center text-white text-xs font-bold font-['Manrope']">
                       {{ user.firstName[0] }}{{ user.lastName[0] }}
@@ -137,14 +144,14 @@
                     <span class="text-sm font-medium text-[#041627]">{{ user.firstName }} {{ user.lastName }}</span>
                   </div>
                 </td>
-                <td class="px-6 py-4 text-sm text-[#515f74]">{{ user.email }}</td>
-                <td class="px-6 py-4">
+                <td class="td">{{ user.email }}</td>
+                <td class="td">
                   <app-badge
                     [label]="user.isActive ? 'Active' : 'Inactive'"
                     [variant]="user.isActive ? 'active' : 'inactive'"
                   ></app-badge>
                 </td>
-                <td class="px-6 py-4 text-center">
+                <td class="td text-center">
                   <button
                     (click)="removeUserFromDept(user.id)"
                     class="text-[#ba1a1a] hover:bg-[#ffdad6] px-2 py-1 rounded transition-colors"
@@ -157,8 +164,10 @@
           </table>
 
           <ng-template #noMembers>
-            <div class="text-center py-8 text-[#515f74]">
-              <p>No members in this department</p>
+            <div class="flex flex-col items-center justify-center py-12 text-center">
+              <span class="material-symbols-outlined text-4xl text-[#d0d5dd] mb-3">group_off</span>
+              <p class="font-['Manrope'] font-semibold text-[#344054] mb-1">No members yet</p>
+              <p class="text-sm text-[#9aa4b2]">Add employees using the form above.</p>
             </div>
           </ng-template>
         </div>

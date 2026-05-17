@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DepartmentService } from '@core/services/department.service';
@@ -27,7 +27,11 @@ export class DepartmentManagementComponent implements OnInit {
   deptForm: FormGroup;
   showCreateModal = signal(false);
   showDeleteConfirm = signal(false);
-  newUserInput = signal('');
+  selectedUserToAdd = signal('');
+  availableToAdd = computed(() => {
+    const memberIds = new Set(this.deptUsers().map(user => user.id));
+    return this.allUsers().filter(user => !memberIds.has(user.id) && user.isActive);
+  });
 
   constructor(
     private deptService: DepartmentService,
@@ -73,6 +77,7 @@ export class DepartmentManagementComponent implements OnInit {
 
   selectDept(dept: DepartmentResponse) {
     this.selectedDept.set(dept);
+    this.selectedUserToAdd.set('');
     this.deptForm.patchValue({
       name: dept.name,
       description: dept.description,
@@ -112,22 +117,18 @@ export class DepartmentManagementComponent implements OnInit {
   }
 
   addUserToDept() {
-    if (!this.selectedDept() || !this.newUserInput()) return;
+    if (!this.selectedDept() || !this.selectedUserToAdd()) return;
 
-    this.deptService.addUserToDepartment(this.selectedDept()!.id, { userId: this.newUserInput() }).subscribe({
+    this.deptService.addUserToDepartment(this.selectedDept()!.id, { userId: this.selectedUserToAdd() }).subscribe({
       next: () => {
         this.toastService.showSuccess('User added to department');
-        this.newUserInput.set('');
+        this.selectedUserToAdd.set('');
         this.loadDeptUsers(this.selectedDept()!.id);
       },
       error: (err) => {
         this.toastService.showError('Failed to add user');
       }
     });
-  }
-
-  onUserInputChange(event: Event) {
-    this.newUserInput.set((event.target as HTMLInputElement).value);
   }
 
   removeUserFromDept(userId: string) {

@@ -85,6 +85,10 @@ export const routes: Routes = [
         data: { permission: PERMISSIONS.audit.read },
       },
       {
+        path: 'finance',
+        loadComponent: () => import('./features/finance/finance-overview/finance-overview.component').then(m => m.FinanceOverviewComponent),
+      },
+      {
         path: 'kpi/:id',
         loadComponent: () => import('./features/kpi/kpi-report/kpi-report.component').then(m => m.KpiReportComponent),
       },
